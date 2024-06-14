@@ -11,17 +11,15 @@ INPUT_VCF=$1
 
 ANCESTRY=$2
 
-
+cd /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS
 module load tabix
 module load bcftools
 module load apptainer/1.1.8
 sif=/scratch/richards/guillaume.butler-laporte/WGS/COVID19_GenOMICC_AVT_analysis/vep_v105.sif
 
-cd /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS
-
 
 # Normalize, left-align and drop genotypes of the input VCF
-bcftools view --drop-genotypes "${INPUT_VCF}" -Ou | bcftools norm -m -any --check-ref w -f /scratch/richards/ethan.kreuzer/vep/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz -Ou | bcftools annotate --set-id '%CHROM:%POS:%REF:%FIRST_ALT' -Oz > "${INPUT_VCF}".set_id
+bcftools view --drop-genotypes "${INPUT_VCF}" -Ou | bcftools norm -m -any --check-ref w -f /scratch/richards/ethan.kreuzer/vep/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna -Ou | bcftools annotate --set-id '%CHROM:%POS:%REF:%FIRST_ALT' -Oz > "${INPUT_VCF}".set_id
 tabix -p vcf "${INPUT_VCF}".set_id
 
 
@@ -39,7 +37,7 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id."${ANCEST
          --format vcf \
          --cache \
          --dir_cache /scratch/richards/ethan.kreuzer/vep \
-         -o ${inputvcf}.finalAnnot_loftee.vcf \
+         -o "${INPUT_VCF}".finalAnnot.vcf \
          --plugin LoF,loftee_path:/opt/micromamba/share/ensembl-vep-105.0-1,human_ancestor_fa:vep_data/human_ancestor.fa.gz,conservation_file:vep_data/loftee.sql,gerp_bigwig:vep_data/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
          --plugin CADD,/scratch/richards/ethan.kreuzer/vep/whole_genome_SNVs.tsv.gz,/scratch/richards/ethan.kreuzer/vep/gnomad.genomes.r3.0.indel.tsv.gz \
          --plugin dbNSFP,/scratch/richards/ethan.kreuzer/vep/dbNSFP4.8a_grch38.gz,Ensembl_transcriptid,Uniprot_acc,VEP_canonical,LRT_pred,SIFT_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred \
@@ -50,6 +48,6 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id."${ANCEST
          --quiet
 
 #bgzip and index output
-bgzip -f ${inputvcf}.finalAnnot_loftee.vcf
-tabix -f ${inputvcf}.finalAnnot_loftee.vcf
+bgzip -f "${INPUT_VCF}".finalAnnot.vcf
+tabix -f "${INPUT_VCF}".finalAnnot.vcf
 
