@@ -9,12 +9,7 @@
 
 INPUT_VCF=$1
 
-#PHENOTYPE=$2
-
 ANCESTRY=$2
-
-#MASKS=$4
-
 
 #assume for now that VEP and LOFTEE work
 
