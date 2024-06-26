@@ -9,7 +9,8 @@
 
 INPUT_VCF=$1
 mask_file=$2
-
+LOF_threshold=$3
+CADD_threshold=$4
 
 cd /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS
 module load tabix
@@ -108,10 +109,10 @@ is_deleterious() {
 
     case $plugin in
         LoF)
-            [[ "$value" == HC ]] && return 0
+            [[ "$value" == ${LOF_threshold} ]] && return 0
             ;;
         CADD_PHRED)
-            (( $(echo "$value >= 10" | bc -l) )) && return 0
+            (( $(echo "$value >= ${CADD_threshold}" | bc -l) )) && return 0
             ;;
         AlphaMissense_pred|EVE_Class25_pred)
             [[ "$value" == *P* ]] && return 0
