@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=exwas_annotation  # Specify the job name
+#SBATCH --job-name=exwas_pipeline  # Specify the job name
 #SBATCH --nodes=1         # Specify the number of nodes
 #SBATCH --ntasks=1        # Specify the number of tasks (typically used for MPI jobs)
 #SBATCH --cpus-per-task=15 # Specify the number of CPUs per task
@@ -43,8 +43,181 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id.no_genoty
          --fork 1 \
          --quiet
 
-#Make set-list input for regenie
+/scratch/richards/yiheng.chen/Plink1.9/plink --vcf "${INPUT_VCF}".set_id.no_genotypes --make-bed --out "${INPUT_VCF}".set_id.no_genotypes.plk
 
+/scratch/richards/yiheng.chen/Plink1.9/plink --bfile "${INPUT_VCF}".set_id.no_genotypes.plk  --hwe 1E-15 midp  --maf 0.01  --geno 0.1  --indep-pairwise 50 5 0.05  --out pruned_variants.txt
+
+# The following code is to create the annotation file needed for regenie according to the user specs
+
+declare -A mask_selection
+
+declare -A vep_consequences_map
+
+while IFS= read -r mask; do
+    mask_selection["$mask"]=1
+done < "${mask_file}"
+
+
+vep_consequences_str="transcript_ablation,splice_acceptor_variant,splice_donor_variant,stop_gained,frameshift_variant,stop_lost,start_lost,transcript_amplification,feature_elongation,feature_truncation,inframe_insertion,inframe_deletion,missense_variant,protein_altering_variant,splice_donor_5th_base_variant,splice_region_variant,splice_donor_region_variant,splice_polypyrimidine_tract_variant,incomplete_terminal_codon_variant,start_retained_variant,stop_retained_variant,synonymous_variant,coding_sequence_variant,mature_miRNA_variant,5_prime_UTR_variant,3_prime_UTR_variant,non_coding_transcript_exon_variant,intron_variant,NMD_transcript_variant,non_coding_transcript_variant,coding_transcript_variant,upstream_gene_variant,downstream_gene_variant,TFBS_ablation,TFBS_amplification,TF_binding_site_variant,regulatory_region_ablation,regulatory_region_amplification,regulatory_region_variant,intergenic_variant,sequence_variant"
+
+# Convert the comma-separated string into an array
+IFS=',' read -r -a vep_consequences <<< "$vep_consequences_str"
+
+for vep_consequence in "${vep_consequences[@]}"; do
+    vep_consequences_map["$vep_consequence"]=1
+done
+
+# Function to check if a plugin value is deleterious
+is_deleterious() {
+    local plugin=$1
+    local value=$2
+
+    case $plugin in
+        LoF)
+            [[ "$value" == "${LOF_threshold}" ]] && return 0
+            ;;
+        CADD_PHRED)
+            (( $(echo "$value >= ${CADD_threshold}" | bc -l) )) && return 0
+            ;;
+        AlphaMissense_pred|EVE_Class25_pred)
+            [[ "$value" == *P* ]] && return 0
+            ;;
+        LRT_pred)
+            [[ "$value" == *D* ]] && return 0
+            ;;
+        MutationTaster_pred)
+            [[ "$value" == *D* || "$value" == *A* ]] && return 0
+            ;;
+        Polyphen2_HDIV_pred|Polyphen2_HVAR_pred|SIFT4G_pred|SIFT_pred)
+            [[ "$value" == *D* ]] && return 0
+            ;;
+    esac
+    return 1
+}
+
+in_mask_selection() {
+    local item=$1
+    [[ -n "${mask_selection[$item]}" ]] && return 0
+    return 1
+}
+
+is_combined_deleterious() {
+    local combined=$1
+    local consequences=$2
+    local extra=$3
+    IFS='&&' read -r -a criteria <<< "$combined"
+    IFS=';' read -r -a plugins <<< "$extra"
+    IFS=',' read -r -a consequence_array <<< "$consequences"
+    
+    for criterion in "${criteria[@]}"; do
+    	#echo "Criterion: $criterion"
+	local found=1    
+        
+	if [[ -z "$criterion" ]]; then
+            continue
+        fi
+
+
+	# Check if criterion is a VEP consequence
+	if [[ ${vep_consequences_map["$criterion"]+_} ]]; then
+		for single_consequence in "${consequence_array[@]}"; do
+                
+			if [[ "$single_consequence" == "$criterion" ]]; then
+              			found=0
+				break
+                	fi
+     		done                
+		
+		if [[ found -eq 1 ]]; then
+			
+			#echo "Criterion $criterion not found in consequences"
+                	return 1
+		fi
+	fi
+
+	if [[ found -eq 0 ]]; then
+
+		continue
+	fi
+
+	found=1
+
+	for plugin in "${plugins[@]}"; do
+            
+	    name="${plugin%%=*}"
+            value="${plugin#*=}"            
+	    
+	    if [[ "$name" == "$criterion" ]]; then
+
+		if is_deleterious "$name" "$value"; then
+			#echo "Plugin $name is deleterious"
+			found=0
+			break
+		fi
+            fi
+        done
+
+	if [[ found -eq 1 ]]; then
+		#echo "Criterion $criterion not found as deleterious plugin"
+		return 1
+	fi
+    done
+    return 0
+}
+
+
+# Process the annotated vcf file
+{
+    read -r header
+
+    # Process each line
+    while IFS=$'\t' read -r id location allele gene feature feature_type consequence cDNA_position CDS_position protein_position amino_acids codons existing_variation extra; do
+        #echo $id
+	#echo $consequence
+	# Skip lines where gene is "-"
+        if [[ "$gene" == "-" ]]; then
+            continue
+        fi
+
+        # Split the consequences and print each one if it is in the mask selection
+        IFS=',' read -r -a consequences_array <<< "$consequence"
+        for single_consequence in "${consequences_array[@]}"; do
+            if in_mask_selection "$single_consequence"; then
+                echo -e "$gene\t$id\t$single_consequence" >> regenie.annotation.txt.test.final
+            fi
+        done
+
+        # Iterate over each plugin in Extra field
+        IFS=';' read -r -a plugins <<< "$extra"
+        for plugin in "${plugins[@]}"; do
+            
+	    plugin_name="${plugin%%=*}"
+	    plugin_value="${plugin#*=}"
+
+	    #echo $plugin_name
+	    #echo $plugin_value
+            # Check if the plugin value is deleterious and if the plugin name is in the mask selection
+            if is_deleterious "$plugin_name" "$plugin_value" && in_mask_selection "$plugin_name"; then
+                echo -e "$gene\t$id\t$plugin_name" >> regenie.annotation.txt.test.final
+            fi
+        done
+
+        #Check for combined criteria in mask selection
+        for mask in "${!mask_selection[@]}"; do
+            if [[ $mask == *&&* ]]; then
+	    	#echo $mask
+                if is_combined_deleterious "$mask" "$consequence" "$extra"; then
+                    echo -e "$gene\t$id\t$mask" >> regenie.annotation.txt.test.final
+                fi
+            fi
+        done
+    done
+} < "${INPUT_VCF}".finalAnnot.txt
+
+
+# The next section of code is to create the set-list file for regenie
+
+# Define the transpose function using awk
 transpose() {
     awk '
     BEGIN {
@@ -80,6 +253,10 @@ awk '{if(!seen[$1]++) { match($2, /^chr([0-9]+)/, arr); print $1, arr[1], ++line
 # Read genes into an array
 genes=($(awk '{print $1}' canon.chr2.gene.txt | tr '\n' ' '))
 
+# Create the output file
+output_file="regenie.set.list.txt.tmp"
+> "$output_file"
+
 # Iterate through each gene
 for gene in "${genes[@]}"; do
   if [ -n "$gene" ]; then
@@ -87,92 +264,13 @@ for gene in "${genes[@]}"; do
     first_variant=$(echo $variants | awk -F, '{print $1}')
     position=$(echo $first_variant | awk -F: '{print $2}')
     chromosome=$(echo $first_variant | awk -F: '{print $1}')
-    echo "$gene $chromosome $position $variants" >> regenie.set.list.txt.tmp
+    echo "$gene $chromosome $position $variants" >> "$output_file"
   fi
 done
 
-sed -E 's/([^ ]+ [^ ]+ )[0-9]+chr/\1chr/' regenie.set.list.txt.tmp  > regenie.set.list.txt
+sed -E 's/([^ ]+ [^ ]+ )[0-9]+chr/\1chr/' "$output_file" > regenie.set.list.txt
 
 rm regenie.set.list.txt.tmp
 
 
-#Make annotation file for regenie input
 
-
-# Read the mask file into an array
-mapfile -t mask_selection < "$mask_file"
-
-# Function to check if a plugin value is deleterious
-is_deleterious() {
-    local plugin=$1
-    local value=$2
-
-    case $plugin in
-        LoF)
-            [[ "$value" == ${LOF_threshold} ]] && return 0
-            ;;
-        CADD_PHRED)
-            (( $(echo "$value >= ${CADD_threshold}" | bc -l) )) && return 0
-            ;;
-        AlphaMissense_pred|EVE_Class25_pred)
-            [[ "$value" == *P* ]] && return 0
-            ;;
-        LRT_pred)
-            [[ "$value" == *D* ]] && return 0
-            ;;
-        MutationTaster_pred)
-            [[ "$value" == *D* || "$value" == *A* ]] && return 0
-            ;;
-        Polyphen2_HDIV_pred|Polyphen2_HVAR_pred|SIFT4G_pred|SIFT_pred)
-            [[ "$value" == *D* ]] && return 0
-            ;;
-    esac
-    return 1
-}
-
-# Function to check if a plugin or consequence is in the mask selection
-in_mask_selection() {
-    local item=$1
-    for mask in "${mask_selection[@]}"; do
-        if [[ "$mask" == "$item" ]]; then
-            return 0
-        fi
-    done
-    return 1
-}
-
-# Process the input file
-{
-    # Skip the header line
-    read -r header
-
-    # Process each line
-    while IFS=$'\t' read -r id location allele gene feature feature_type consequence cDNA_position CDS_position protein_position amino_acids codons existing_variation extra; do
-        # Skip lines where gene is "-"
-        if [[ "$gene" == "-" ]]; then
-            continue
-        fi
-
-
-        # Split the consequences and print each one if it is in the mask selection
-        IFS=',' read -r -a consequences_array <<< "$consequence"
-        for single_consequence in "${consequences_array[@]}"; do
-            if in_mask_selection "$single_consequence"; then
-                echo -e "$id\t$gene\t$single_consequence" >> regenie.annotation.txt
-            fi
-        done
-
-        # Iterate over each plugin in Extra field
-        IFS=';' read -r -a plugins <<< "$extra"
-        for plugin in "${plugins[@]}"; do
-            plugin_name=$(echo "$plugin" | cut -d'=' -f1)
-            plugin_value=$(echo "$plugin" | cut -d'=' -f2)
-
-
-            # Check if the plugin value is deleterious and if the plugin name is in the mask selection
-            if is_deleterious "$plugin_name" "$plugin_value" && in_mask_selection "$plugin_name"; then
-                echo -e "$gene\t$id\t$plugin_name" >> regenie.annotation.txt
-            fi
-        done
-    done
-} < reheadered.chr2.vcf.gz.finalAnnot.txt
