@@ -24,6 +24,12 @@ bcftools norm -m -any --check-ref w -f /scratch/richards/ethan.kreuzer/vep/GCA_0
 
 tabix -p vcf "${INPUT_VCF}".set_id.no_genotypes
 
+#IN the final pipeline I will combine the drop genotypes command with this above and assume the user provided the ancestry selected plink files themselves
+
+#/scratch/richards/yiheng.chen/Plink1.9/plink --vcf "${INPUT_VCF}".set_id --make-bed --out "${INPUT_VCF}".set_id.plk
+
+#/scratch/richards/yiheng.chen/Plink1.9/plink --bfile "${INPUT_VCF}".set_id.plk  --hwe 1E-15 midp  --maf 0.01  --geno 0.1  --indep-pairwise 50 5 0.05  --out pruned_variants.txt
+
 
 chromosome=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 X)
 chr="${chromosome[SLURM_ARRAY_TASK_ID]}"
@@ -32,8 +38,8 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id.no_genoty
          --assembly GRCh38 \
          --format vcf \
          --cache \
+	 -o stdout \
          --dir_cache /scratch/richards/ethan.kreuzer/vep \
-         -o "${INPUT_VCF}".finalAnnot.txt \
          --plugin LoF,loftee_path:/opt/micromamba/share/ensembl-vep-105.0-1,human_ancestor_fa:/scratch/richards/ethan.kreuzer/vep/human_ancestor.fa.gz,conservation_file:/scratch/richards/ethan.kreuzer/vep/loftee.sql,gerp_bigwig:/scratch/richards/ethan.kreuzer/vep/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
          --plugin CADD,/scratch/richards/ethan.kreuzer/vep/whole_genome_SNVs.tsv.gz,/scratch/richards/ethan.kreuzer/vep/gnomad.genomes.r3.0.indel.tsv.gz \
          --plugin dbNSFP,/scratch/richards/ethan.kreuzer/vep/dbNSFP4.8a_grch38.gz,Ensembl_transcriptid,EVE_Class25_pred,VEP_canonical,LRT_pred,SIFT_pred,SIFT4G_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,AlphaMissense_pred \
@@ -41,11 +47,8 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id.no_genoty
          --force_overwrite \
          --offline \
          --fork 1 \
-         --quiet
+         --quiet | /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --format tab --filter "Gene" | /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --filter "LRT_pred match .*D.* or CADD_PHRED >= ${CADD_threshold} or AlphaMissense_pred match .*P.* or EVE_Class25_pred match .*P.* or LoF is HC or LoF is LC or MutationTaster_pred match .*D.* or MutationTaster_pred match .*A.* or Polyphen2_HDIV_pred match .*D.* or Polyphen2_HVAR_pred match .*D.* or SIFT4G_pred match .*D.* or SIFT_pred match .*P.*" > "${INPUT_VCF}".finalAnnot.filter_vep.txt
 
-/scratch/richards/yiheng.chen/Plink1.9/plink --vcf "${INPUT_VCF}".set_id.no_genotypes --make-bed --out "${INPUT_VCF}".set_id.no_genotypes.plk
-
-/scratch/richards/yiheng.chen/Plink1.9/plink --bfile "${INPUT_VCF}".set_id.no_genotypes.plk  --hwe 1E-15 midp  --maf 0.01  --geno 0.1  --indep-pairwise 50 5 0.05  --out pruned_variants.txt
 
 # The following code is to create the annotation file needed for regenie according to the user specs
 
@@ -77,7 +80,7 @@ is_deleterious() {
             [[ "$value" == "${LOF_threshold}" ]] && return 0
             ;;
         CADD_PHRED)
-            (( $(echo "$value >= ${CADD_threshold}" | bc -l) )) && return 0
+            awk "BEGIN {exit !($value >= ${CADD_threshold})}" && return 0
             ;;
         AlphaMissense_pred|EVE_Class25_pred)
             [[ "$value" == *P* ]] && return 0
@@ -169,22 +172,20 @@ is_combined_deleterious() {
 # Process the annotated vcf file
 {
     read -r header
+    output=""
 
     # Process each line
     while IFS=$'\t' read -r id location allele gene feature feature_type consequence cDNA_position CDS_position protein_position amino_acids codons existing_variation extra; do
         #echo $id
 	#echo $consequence
-	# Skip lines where gene is "-"
-        if [[ "$gene" == "-" ]]; then
-            continue
-        fi
-
         # Split the consequences and print each one if it is in the mask selection
         IFS=',' read -r -a consequences_array <<< "$consequence"
         for single_consequence in "${consequences_array[@]}"; do
             if in_mask_selection "$single_consequence"; then
-                echo -e "$gene\t$id\t$single_consequence" >> regenie.annotation.txt.test.final
-            fi
+            	
+		output+="$gene\t$id\t$single_consequence\n"
+
+	    fi
         done
 
         # Iterate over each plugin in Extra field
@@ -198,7 +199,9 @@ is_combined_deleterious() {
 	    #echo $plugin_value
             # Check if the plugin value is deleterious and if the plugin name is in the mask selection
             if is_deleterious "$plugin_name" "$plugin_value" && in_mask_selection "$plugin_name"; then
-                echo -e "$gene\t$id\t$plugin_name" >> regenie.annotation.txt.test.final
+            
+	    	output+="$gene\t$id\t$plugin_name\n"
+
             fi
         done
 
@@ -207,13 +210,17 @@ is_combined_deleterious() {
             if [[ $mask == *&&* ]]; then
 	    	#echo $mask
                 if is_combined_deleterious "$mask" "$consequence" "$extra"; then
-                    echo -e "$gene\t$id\t$mask" >> regenie.annotation.txt.test.final
+                    
+		    output+="$gene\t$id\t$mask\n"
                 fi
             fi
         done
     done
-} < "${INPUT_VCF}".finalAnnot.txt
+} < "${INPUT_VCF}".finalAnnot.filter_vep.txt
 
+
+
+echo -e "$output" > regenie.annotation.txt
 
 # The next section of code is to create the set-list file for regenie
 
@@ -246,7 +253,7 @@ transpose() {
     '
 }
 
-awk '{ print $4, $1 }' "${INPUT_VCF}".finalAnnot.txt | sort -u -k 1.5,1 -k 2.6,2 > canon.chr2.var.gene.txt
+awk '{ print $4, $1 }' "${INPUT_VCF}".finalAnnot.filter_vep.txt | sort -u -k 1.5,1 -k 2.6,2 > canon.chr2.var.gene.txt
 
 awk '{if(!seen[$1]++) { match($2, /^chr([0-9]+)/, arr); print $1, arr[1], ++line }}' canon.chr2.var.gene.txt > canon.chr2.gene.txt
 
