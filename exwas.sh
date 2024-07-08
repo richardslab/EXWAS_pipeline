@@ -38,16 +38,17 @@ apptainer run --bind ${PWD}:${PWD} ${sif} vep -i "${INPUT_VCF}".set_id.no_genoty
          --assembly GRCh38 \
          --format vcf \
          --cache \
-	 -o stdout \
+	 -o "${INPUT_VCF}".finalAnnot.txt \
          --dir_cache /scratch/richards/ethan.kreuzer/vep \
          --plugin LoF,loftee_path:/opt/micromamba/share/ensembl-vep-105.0-1,human_ancestor_fa:/scratch/richards/ethan.kreuzer/vep/human_ancestor.fa.gz,conservation_file:/scratch/richards/ethan.kreuzer/vep/loftee.sql,gerp_bigwig:/scratch/richards/ethan.kreuzer/vep/gerp_conservation_scores.homo_sapiens.GRCh38.bw \
          --plugin CADD,/scratch/richards/ethan.kreuzer/vep/whole_genome_SNVs.tsv.gz,/scratch/richards/ethan.kreuzer/vep/gnomad.genomes.r3.0.indel.tsv.gz \
-         --plugin dbNSFP,/scratch/richards/ethan.kreuzer/vep/dbNSFP4.8a_grch38.gz,Ensembl_transcriptid,EVE_Class25_pred,VEP_canonical,LRT_pred,SIFT_pred,SIFT4G_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,AlphaMissense_pred \
-	 --everything \
+         --plugin dbNSFP,/scratch/richards/ethan.kreuzer/vep/dbNSFP4.8a_grch38.gz,gnomAD_genomes_AFR_AF,gnomAD_genomes_AMI_AF,gnomAD_genomes_AMR_AF,gnomAD_genomes_ASJ_AF,gnomAD_genomes_EAS_AF,gnomAD_genomes_FIN_AF,gnomAD_genomes_MID_AF,gnomAD_genomes_NFE_AF,gnomAD_genomes_SAS_AF,EVE_Class25_pred,VEP_canonical,LRT_pred,SIFT_pred,SIFT4G_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,AlphaMissense_pred \
          --force_overwrite \
          --offline \
-         --fork 1 \
-         --quiet | /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --format tab --filter "Gene" | /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --filter "LRT_pred match .*D.* or CADD_PHRED >= ${CADD_threshold} or AlphaMissense_pred match .*P.* or EVE_Class25_pred match .*P.* or LoF is HC or LoF is LC or MutationTaster_pred match .*D.* or MutationTaster_pred match .*A.* or Polyphen2_HDIV_pred match .*D.* or Polyphen2_HVAR_pred match .*D.* or SIFT4G_pred match .*D.* or SIFT_pred match .*P.*" > "${INPUT_VCF}".finalAnnot.filter_vep.txt
+         --fork 1 \ #DO NOT INCREASE THIS OR LOFTEE WILL FAIL
+         --quiet 
+
+/home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --format tab -i "${INPUT_VCF}".finalAnnot.txt --filter "Gene" | /home/richards/ethan.kreuzer/projects/richards/ethan.kreuzer/EXWAS/ensembl-vep/filter_vep --filter "LRT_pred match .*D.* or CADD_PHRED >= ${CADD_threshold} or AlphaMissense_pred match .*P.* or EVE_Class25_pred match .*P.* or LoF is HC or LoF is LC or MutationTaster_pred match .*D.* or MutationTaster_pred match .*A.* or Polyphen2_HDIV_pred match .*D.* or Polyphen2_HVAR_pred match .*D.* or SIFT4G_pred match .*D.* or SIFT_pred match .*P.*" -o "${INPUT_VCF}".finalAnnot.filter_vep.txt
 
 
 # The following code is to create the annotation file needed for regenie according to the user specs
@@ -71,27 +72,29 @@ for vep_consequence in "${vep_consequences[@]}"; do
 done
 
 # Function to check if a plugin value is deleterious
+
 is_deleterious() {
     local plugin=$1
     local value=$2
 
     case $plugin in
         LoF)
-            [[ "$value" == "${LOF_threshold}" ]] && return 0
+            if [[ "$LOF_threshold" == "HC" ]]; then
+                [[ "$value" == "HC" ]] && return 0
+            else
+                return 0
+            fi
             ;;
         CADD_PHRED)
-            awk "BEGIN {exit !($value >= ${CADD_threshold})}" && return 0
+            (( $(awk "BEGIN {print ($value >= ${CADD_threshold})}") )) && return 0
             ;;
         AlphaMissense_pred|EVE_Class25_pred)
             [[ "$value" == *P* ]] && return 0
             ;;
-        LRT_pred)
-            [[ "$value" == *D* ]] && return 0
-            ;;
         MutationTaster_pred)
             [[ "$value" == *D* || "$value" == *A* ]] && return 0
             ;;
-        Polyphen2_HDIV_pred|Polyphen2_HVAR_pred|SIFT4G_pred|SIFT_pred)
+        LRT_pred|Polyphen2_HDIV_pred|Polyphen2_HVAR_pred|SIFT4G_pred|SIFT_pred)
             [[ "$value" == *D* ]] && return 0
             ;;
     esac
@@ -265,19 +268,15 @@ output_file="regenie.set.list.txt.tmp"
 > "$output_file"
 
 # Iterate through each gene
+
 for gene in "${genes[@]}"; do
   if [ -n "$gene" ]; then
-    variants=$(awk -v a="$gene" '$1 == a {print $2}' canon.chr2.var.gene.txt | uniq | transpose | tr -s '[:blank:]' "," | awk 'BEGIN{FS=",";OFS=","} { $1=$1; print $0 }')
-    first_variant=$(echo $variants | awk -F, '{print $1}')
-    position=$(echo $first_variant | awk -F: '{print $2}')
-    chromosome=$(echo $first_variant | awk -F: '{print $1}')
-    echo "$gene $chromosome $position $variants" >> "$output_file"
+  	awk -v a="$gene" '$1 == a {print $2}' canon.chr2.var.gene.txt | uniq | transpose | tr -s '[:blank:]' "," | \
+	awk 'BEGIN{FS=",";OFS=","} { $1=$1; print $0 }' | \
+	awk -F, -v gene="$gene" '{split($1, a, ":"); $1 = gene OFS a[1] OFS a[2] OFS $0; gsub(/^[ \t]+/, "", $1); print $1}' >> "$output_file"
   fi
 done
 
 sed -E 's/([^ ]+ [^ ]+ )[0-9]+chr/\1chr/' "$output_file" > regenie.set.list.txt
-
-rm regenie.set.list.txt.tmp
-
 
 
