@@ -1,0 +1,10 @@
+BootStrap: docker
+From: monsieurbl/vep_pipeline:v1
+
+%runscript
+	echo "This is the modified vep_v105.sif apptainer for ExWAS pipeline"
+
+%labels
+	Author: Kevin Liang
+	Version: 1.0
+	Description: "modified version of monsieurbl/vep_pipeline"

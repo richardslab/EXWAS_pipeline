@@ -1,0 +1,33 @@
+BootStrap: docker
+From: mambaorg/micromamba:latest
+
+# these are executed when the image is being built
+%post
+	# this is set at build time
+	export VERSION={{ vep_version }}
+
+	# # clone the loftee git
+	# mkdir -p /tmp/loftee_stuff
+	# cd /tmp/loftee_stuff
+	# git clone -b grch38 https://github.com/konradjk/loftee.git
+
+
+
+%environment
+	# this is set at runtime before the ones in post
+	export HI="hello"
+	
+
+%runscript
+	echo "this is apptainer image for vep ${VERSION}"
+
+%labels
+	Author: Kevin Liang
+	Version: 1.0
+	Description: "modified version of monsieurbl/vep_pipeline"
+
+%help
+	This is an apptainer based on monsieurbl/vep_pipeline:v1 available on dockerhub
+
+%arguments
+	vep_version=105.0
