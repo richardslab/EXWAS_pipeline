@@ -33,8 +33,8 @@ def annotate_chr(chr,vcf_infile,vcf_anno_out):
   return
 
 def main():
-  vcf_infile = os.path.join(CONFIG.wdir,'1_bcftool_variant_only_vcf.set_id.no_genotypes')
-  vcf_anno_out=os.path.join(CONFIG.wdir,'2_vcf_final_annotation.txt')
+  vcf_infile = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
+  vcf_anno_out=os.path.join(CONFIG.wdir,f'2_{VCF_NAME}_vcf_final_annotation.txt')
   
   annotate_chr(vcf_infile,vcf_anno_out)
 
@@ -59,5 +59,7 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+
+  VCF_NAME = os.path.basename(CONFIG.input_vcf)
   main()
 

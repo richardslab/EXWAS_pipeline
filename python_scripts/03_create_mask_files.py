@@ -9,39 +9,22 @@ from collections import namedtuple
 import argparse
 
 def sanity_checks():
-  """Make sure we have all the inputs we need and the setup is correct so far
+  """Make sure we have all the inputs we need and the setup is correct so far.
+
+  A bunch of asserts. if all good, then passes
   """
 
-  # annotation file
-  expected_annotation_file = os.path.join(CONFIG.wdir,'2_vcf_final_annotation.txt')
+  # annotation file exists
+  expected_annotation_file = os.path.join(CONFIG.wdir,f'2_{VCF_NAME}_vcf_final_annotation.txt')
   assert(
     os.path.isfile(expected_annotation_file)
   ),f"Missing annotation file {os.path.isfile(expected_annotation_file)}"
 
-  # the maks definitions are found within the annotation file
-  ## obtain all the plugins that was attempted by extracting all 'extra' columns in the vep outputs
-
-  # the extra column key is the last set of info before the results
-  # https://useast.ensembl.org/info/docs/tools/vep/vep_formats.html
-  start_serach_str = "## Extra column keys:"
-  end_search_str="#Uploaded_variation"
-
-  extra_columns = []
-  with open(expected_annotation_file,'r') as ptr:
-    start_search = False
-    end_search = False
-    for line in ptr:
-      if re.match(start_serach_str,line):
-        start_search=True
-        continue
-      if re.match(end_search_str,line):
-        end_search = True
-        break
-      if start_search and not end_search:
-        extra_columns += [re.sub("##","",line.split(":")[0]).strip()]
   
-  # Make sure the plugins used for mask definitions
-  # are found
+  
+  
+  extra_columns = parse_vep_headers.get_vep_plugins(expected_annotation_file)
+  # all plugins used for mask definition exists
   for study in CONFIG.mask_definitions.keys():
     study_masks = CONFIG.mask_definitions[study]
     study_plugins = []
@@ -54,7 +37,7 @@ def sanity_checks():
     ),f"Plugins needed for {study} not found"
 
   
-  # make sure we have definition for all the mask filter
+  # all masks have definitions
   for study,mask_names in CONFIG.mask_names.items():
     all_definitions_provided = list(CONFIG.mask_definitions[study].keys())
     study_mask_definitions_needed = []
@@ -68,26 +51,36 @@ def sanity_checks():
       )
     ),f"{study}: not all definitions are provided for masks"
       
-  # if all assertion passes, it's all good
+  
   return
 
 
 def main():
   sanity_checks()
+  # write the mask file for each study
+  for study,mask_names in CONFIG.mask_names.items():
+
+    study_outdir = os.path.join(CONFIG.wdir,study)
+    os.makedirs(study_outdir,exist_ok=True)
+
+    mask_file = os.path.join(study_outdir,f"{study}_masks.txt")
+    with open(mask_file,'w') as ptr:
+      for mask_name,mask_def in mask_names.items():
+        ptr.write(f"{mask_name} {mask_def}\n")
 
 
   return
 
 
 if __name__ == "__main__":
-  # parser = argparse.ArgumentParser()
-  # parser.add_argument(
-  #   '--config_file','-c',
-  #   dest='cfile',
-  #   default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
-  #   help='configuration yaml file'
-  # )
-  # cargs =   parser.parse_args()
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+    '--config_file','-c',
+    dest='cfile',
+    default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
+    help='configuration yaml file'
+  )
+  cargs =   parser.parse_args()
 
   import mock
   cargs = mock.Mock()
@@ -101,5 +94,10 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+
+  sys.path.append(CONFIG.script_dir)
+  from python_scripts.python_helpers.vep_helpers import parse_vep_headers
+  
+  VCF_NAME = os.path.basename(CONFIG.input_vcf)
 
   main()

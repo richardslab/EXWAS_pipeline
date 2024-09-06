@@ -99,12 +99,12 @@ def generate_plink_files(vcf_outfile,plink_output):
   return
 
 def main():
-  vcf_outfile = os.path.join(CONFIG.wdir,'bcftool_variant_only_vcf.set_id.no_genotypes')
+  vcf_outfile = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
   normalize_vcf(
     vcf_outfile
   )
-  plink_output = os.path.join(CONFIG.wdir,'bcftool_variant_only_vcf.set_id.no_genotypes') 
-  generate_plink_files(vcf_outfile,plink_output)
+  # plink_output = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes') 
+  # generate_plink_files(vcf_outfile,plink_output)
 
   return
 
@@ -126,5 +126,7 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+
+  VCF_NAME = os.path.basename(CONFIG.input_vcf)
   main()
 
