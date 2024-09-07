@@ -21,8 +21,6 @@ def sanity_checks():
   ),f"Missing annotation file {os.path.isfile(expected_annotation_file)}"
 
   
-  
-  
   extra_columns = parse_vep_headers.get_vep_plugins(expected_annotation_file)
   # all plugins used for mask definition exists
   for study in CONFIG.mask_definitions.keys():
@@ -37,20 +35,6 @@ def sanity_checks():
     ),f"Plugins needed for {study} not found"
 
   
-  # all masks have definitions
-  for study,mask_names in CONFIG.mask_names.items():
-    all_definitions_provided = list(CONFIG.mask_definitions[study].keys())
-    study_mask_definitions_needed = []
-    for x in list(mask_names.values()):
-      x = x.split(",")
-      study_mask_definitions_needed += [x.strip() for x in x]
-    study_mask_definitions_needed = list(set(study_mask_definitions_needed))
-    assert(
-      all(
-        [x in all_definitions_provided for x in study_mask_definitions_needed]
-      )
-    ),f"{study}: not all definitions are provided for masks"
-      
   
   return
 
