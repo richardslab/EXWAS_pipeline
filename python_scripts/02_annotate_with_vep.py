@@ -10,9 +10,10 @@ import argparse
 
 
 def annotate_chr(chr,vcf_infile,vcf_anno_out):
+  # binds the cache directory
   apptainer_cmd = [
     CONFIG.apptainer,
-    'run','--bind',f"{CONFIG.wdir}:{CONFIG.wdir}",
+    'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{CONFIG.wdir}:/tmp/vep_wdir",
     'vep','-i',vcf_infile,
     '--assembly',CONFIG.genome_build,
     '--format','vcf',

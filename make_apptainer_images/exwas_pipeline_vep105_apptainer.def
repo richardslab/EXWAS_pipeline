@@ -15,8 +15,9 @@ From: mambaorg/micromamba:latest
 
 
 	# set up working directory for VEP installation
-	wdir="${MAMBA_ROOT_PREFIX}/VEP_${VERSION}"
+	wdir="/tmp/vep_cache"
 	mkdir $wdir
+	mkdir "/tmp/vep_wdir
 	cd $wdir
 
 
