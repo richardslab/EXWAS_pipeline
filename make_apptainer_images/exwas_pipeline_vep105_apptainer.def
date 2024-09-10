@@ -14,10 +14,12 @@ From: mambaorg/micromamba:latest
 	echo "export VERSION=${VERSION}" >> $APPTAINER_ENVIRONMENT
 
 
-	# set up working directory for VEP installation
+	# set up working directory for running VEP
 	wdir="${MAMBA_ROOT_PREFIX}/VEP_${VERSION}"
 	mkdir $wdir
 	cd $wdir
+
+	micromamba install --prefix $MAMBA_ROOT_PREFIX -y -c conda-forge -c bioconda -c defaults samtools
 
 
 	# install git
@@ -76,7 +78,7 @@ From: mambaorg/micromamba:latest
 %labels
 	Author: Kevin Liang
 	Version: 1.0
-	Description: "Apptainer file for docker monsieurbl/vep_pipeline"
+	Description: "Apptainer definition file for docker image from monsieurbl/vep_pipeline"
 
 %help
 	This is an apptainer image based on monsieurbl/vep_pipeline:v1 available on dockerhub.
