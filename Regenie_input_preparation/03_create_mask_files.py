@@ -15,7 +15,7 @@ def sanity_checks():
   """
 
   # annotation file exists
-  expected_annotation_file = os.path.join(CONFIG.wdir,f'2_{VCF_NAME}_vcf_final_annotation.txt')
+  expected_annotation_file = os.path.join(WDIR,f'2_{VCF_NAME}_vcf_final_annotation.txt')
   assert(
     os.path.isfile(expected_annotation_file)
   ),f"Missing annotation file {os.path.isfile(expected_annotation_file)}"
@@ -44,7 +44,7 @@ def main():
   # write the mask file for each study
   for study,mask_names in CONFIG.mask_names.items():
 
-    study_outdir = os.path.join(CONFIG.wdir,study)
+    study_outdir = os.path.join(WDIR,study)
     os.makedirs(study_outdir,exist_ok=True)
 
     mask_file = os.path.join(study_outdir,f"{study}_masks.txt")
@@ -64,24 +64,39 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
-
-  import mock
-  cargs = mock.Mock()
-  cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
   print(f"Using {os.path.basename(cargs.cfile)}")
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
 
   sys.path.append(CONFIG.script_dir)
   from python_scripts.python_helpers.vep_helpers import parse_vep_headers
   
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
 
   main()

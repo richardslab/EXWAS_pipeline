@@ -10,9 +10,9 @@ from collections import namedtuple
 import argparse
 
 def main():
-  expected_annotation_file = os.path.join(CONFIG.wdir,f'2_{VCF_NAME}_vcf_final_annotation.txt')
+  expected_annotation_file = os.path.join(WDIR,f'2_{VCF_NAME}_vcf_final_annotation.txt')
 
-  outdir = os.path.join(CONFIG.wdir,'vep_consequence_summaries')
+  outdir = os.path.join(WDIR,'vep_consequence_summaries')
   os.makedirs(outdir,exist_ok=True)
   
   line_num = 0
@@ -130,28 +130,37 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
-
-  # import mock
-  # cargs = mock.Mock()
-  # cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
   print(f"Using {os.path.basename(cargs.cfile)}")
-
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-
-
-  CONSTANT = CONFIG.CONST
-  CONST_NUMERIC = CONFIG.CONST_NUMERIC
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
   
-
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
   sys.path.append(CONFIG.script_dir)
   from python_helpers.vep_helpers import parse_vep
   from python_helpers.vep_helpers import parse_vep_headers

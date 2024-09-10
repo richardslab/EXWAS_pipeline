@@ -8,11 +8,6 @@ from collections import namedtuple
 import subprocess as sp
 import argparse
 
-# load in the configuration for the project
-with open("/scratch/richards/kevin.liang2/exwas_pipeline/config/proj_config.yml",'r') as ptr:
-  params=yaml.full_load(ptr)['proj_config']
-CONFIG = namedtuple('params',params.keys())(**params)
-
 def normalize_vcf(vcf_outfile):
   # commands to align, change the SNP IDs and remove sample info
   bcftool_align_cmd = [
@@ -99,11 +94,11 @@ def generate_plink_files(vcf_outfile,plink_output):
   return
 
 def main():
-  vcf_outfile = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
+  vcf_outfile = os.path.join(WDIR,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
   normalize_vcf(
     vcf_outfile
   )
-  # plink_output = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes') 
+  # plink_output = os.path.join(WDIR,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes') 
   # generate_plink_files(vcf_outfile,plink_output)
 
   return
@@ -116,17 +111,36 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
   print(f"Using {os.path.basename(cargs.cfile)}")
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
 
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
   main()
 

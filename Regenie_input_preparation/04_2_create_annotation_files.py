@@ -11,7 +11,7 @@ from pathlib import Path
 
 def main():
   vep_summarie_file = os.path.join(
-    CONFIG.wdir,'vep_consequence_summaries',f"{VCF_NAME}_vep_summaries.json.gz"
+    WDIR,'vep_consequence_summaries',f"{VCF_NAME}_vep_summaries.json.gz"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -23,7 +23,7 @@ def main():
   # Make sure there isn't an annotation file created already
   all_studies = list(CONFIG.mask_names.keys())
   for study in all_studies:
-    study_ofile = os.path.join(CONFIG.wdir,study,f"{VCF_NAME}_annotations.txt")
+    study_ofile = os.path.join(WDIR,study,f"{VCF_NAME}_annotations.txt")
     assert(
       not os.path.isfile(study_ofile)
     ),f"annotation file found for {study}. Delete it first, or skip this step"
@@ -68,7 +68,7 @@ def main():
               var_mask = i
               break
           assert(var_mask != None),f"did not assign unique mask {gene} {var} {study} {var_with_possible_annotations}"
-          study_ofile = os.path.join(CONFIG.wdir,study,f"{VCF_NAME}_annotations.txt")
+          study_ofile = os.path.join(WDIR,study,f"{VCF_NAME}_annotations.txt")
           with open(study_ofile,'a') as ptr:
             ptr.write(
               f"{var}\t{gene}\t{var_mask}\n"
@@ -83,28 +83,37 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
-
-  # import mock
-  # cargs = mock.Mock()
-  # cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
-  print(f"Using {cargs.cfile}")
-
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
+  print(f"Using {os.path.basename(cargs.cfile)}")
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
 
-
-  CONSTANT = CONFIG.CONST
-  CONST_NUMERIC = CONFIG.CONST_NUMERIC
-  
-
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
   sys.path.append(CONFIG.script_dir)
 
 

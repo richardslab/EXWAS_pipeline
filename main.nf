@@ -20,12 +20,20 @@
 */
 
 
-regenie_input_preparation(){
-  take:
-    parameter_file
+process test_python {
+  // This specifies where the outputs are written to by the process
+  storeDir "${params.outdir}/test_output"
 
-  main:
+  output:
+    path "hi2.txt"
 
-  emit:
+  script:
+  // baseDir references the path containing the current nextflow script
+    """
+    python ${baseDir}/test_py/x1_test.py -c ${params.config_file}
+    """
+}
 
+workflow {
+  test_python | view
 }

@@ -11,7 +11,7 @@ from pathlib import Path
 
 def main():
   vep_summarie_file = os.path.join(
-    CONFIG.wdir,'vep_consequence_summaries',f"{VCF_NAME}_vep_summaries.json.gz"
+    WDIR,'vep_consequence_summaries',f"{VCF_NAME}_vep_summaries.json.gz"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -21,7 +21,7 @@ def main():
     vep_summaries = json.load(ptr)
 
   setlist_file = os.path.join(
-    CONFIG.wdir,'vep_consequence_summaries',f"{VCF_NAME}.setlist"
+    WDIR,'vep_consequence_summaries',f"{VCF_NAME}.setlist"
   )
   with open(setlist_file,'w') as ptr:
     for gene,vars in vep_summaries.items():
@@ -65,28 +65,36 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
-
-  # import mock
-  # cargs = mock.Mock()
-  # cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
-  print(f"Using {cargs.cfile}")
-
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
+  print(f"Using {os.path.basename(cargs.cfile)}")
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-
-
-  CONSTANT = CONFIG.CONST
-  CONST_NUMERIC = CONFIG.CONST_NUMERIC
-  
-
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
   sys.path.append(CONFIG.script_dir)
 
 

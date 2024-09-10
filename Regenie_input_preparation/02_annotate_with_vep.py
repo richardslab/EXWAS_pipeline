@@ -13,7 +13,7 @@ def annotate_chr(chr,vcf_infile,vcf_anno_out):
   # binds the cache directory
   apptainer_cmd = [
     CONFIG.apptainer,
-    'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{CONFIG.wdir}:/tmp/vep_wdir",
+    'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir",
     'vep','-i',vcf_infile,
     '--assembly',CONFIG.genome_build,
     '--format','vcf',
@@ -34,8 +34,8 @@ def annotate_chr(chr,vcf_infile,vcf_anno_out):
   return
 
 def main():
-  vcf_infile = os.path.join(CONFIG.wdir,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
-  vcf_anno_out=os.path.join(CONFIG.wdir,f'2_{VCF_NAME}_vcf_final_annotation.txt')
+  vcf_infile = os.path.join(WDIR,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
+  vcf_anno_out=os.path.join(WDIR,f'2_{VCF_NAME}_vcf_final_annotation.txt')
   
   annotate_chr(vcf_infile,vcf_anno_out)
 
@@ -50,17 +50,36 @@ if __name__ == "__main__":
     default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
+  parser.add_argument(
+    '--input_vcf','-i',
+    dest='input_vcf',
+    nargs=1,
+    help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--wdir',
+    dest='wdir',
+    nargs=1,
+    help="Output directory",
+    type=str
+  )
   cargs =   parser.parse_args()
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
+  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
+  assert(cargs.wdir),'output directory missing'
   print(f"Using {os.path.basename(cargs.cfile)}")
+  print(f"Using {os.path.basename(cargs.input_vcf)}")
+  print(f"Outputs in {cargs.wdir}")
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-
-  VCF_NAME = os.path.basename(CONFIG.input_vcf)
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
+  
   main()
 
