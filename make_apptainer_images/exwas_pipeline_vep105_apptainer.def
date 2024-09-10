@@ -14,11 +14,15 @@ From: mambaorg/micromamba:latest
 	echo "export VERSION=${VERSION}" >> $APPTAINER_ENVIRONMENT
 
 
-	# set up working directory for VEP installation
+
+	# set up working directory for VEP installation and directory to binds
+	mkdir "/tmp/vep_wdir"
+	mkdir "/tmp/vep_plugins"
 	wdir="/tmp/vep_cache"
 	mkdir $wdir
-	mkdir "/tmp/vep_wdir
 	cd $wdir
+
+	micromamba install --prefix $MAMBA_ROOT_PREFIX -y -c conda-forge -c bioconda -c defaults samtools
 
 
 	# install git
@@ -77,7 +81,7 @@ From: mambaorg/micromamba:latest
 %labels
 	Author: Kevin Liang
 	Version: 1.0
-	Description: "Apptainer file for docker monsieurbl/vep_pipeline"
+	Description: "Apptainer definition file for docker image from monsieurbl/vep_pipeline"
 
 %help
 	This is an apptainer image based on monsieurbl/vep_pipeline:v1 available on dockerhub.
@@ -92,6 +96,11 @@ From: mambaorg/micromamba:latest
 	
 	Bind appropriate host FS with apptainer environment using -B command to read/write files, such as installation of cache
 	e.g., install dbNFSP into ~/dir
-		apptainer run -C -B ~/dir:/tmp vep_apptainer "vep_install -a p --PLUGINS dbNFSP --CACHE_VERSION 105 --PLUGINSDIR /tmp"
+		apptainer run -C -B ~/dir:/vep_plugins vep_apptainer "vep_install -a p --PLUGINS dbNFSP --CACHE_VERSION 105 --PLUGINSDIR /tmp"
+	
+	Can bind directory to:
+		/tmp/vep_cache
+		/tmp/vep_plugins
+		/tmp/vep_wdir
 	
 
