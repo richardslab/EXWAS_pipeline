@@ -21,16 +21,16 @@
 
 
 process test_python {
-  // This specifies where the outputs are written to by the process
-  storeDir "${params.outdir}/test_output"
-
   output:
-    path "hi2.txt"
+    stdout
 
   script:
   // baseDir references the path containing the current nextflow script
+  // to obtain parent directory, use dirname of bash
+  // escape characters accordingly.
     """
-    python ${baseDir}/test_py/x1_test.py -c ${params.config_file}
+    #!/bin/bash
+    echo \$(dirname ${baseDir})
     """
 }
 
