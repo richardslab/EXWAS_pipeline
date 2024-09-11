@@ -30,6 +30,7 @@ process QC_config_file {
   // to obtain parent directory, use dirname of bash
   // escape characters accordingly.
     """
+    #!/bin/bash
     which python
     """
 }
