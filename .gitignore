@@ -8,6 +8,8 @@
 *.csv
 *.html
 *.yml
+*.config
+*.yaml
 *.log
 *.tiff
 # other data files that should not be present

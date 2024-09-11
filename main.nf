@@ -20,7 +20,8 @@
 */
 
 
-process test_python {
+process QC_config_file {
+
   output:
     stdout
 
@@ -29,11 +30,10 @@ process test_python {
   // to obtain parent directory, use dirname of bash
   // escape characters accordingly.
     """
-    #!/bin/bash
-    echo \$(dirname ${baseDir})
+    which python
     """
 }
 
 workflow {
-  test_python | view
+  QC_config_file() | view
 }

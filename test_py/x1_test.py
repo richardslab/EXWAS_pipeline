@@ -17,5 +17,10 @@ def get_param():
   print(cargs.cfile)
   return
 
-write_hello()
+def print_env():
+  sp.run(
+    ['which','python'],check=True
+  )
+  return
+print_env()
 
