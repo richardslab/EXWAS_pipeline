@@ -8,7 +8,6 @@
 *.csv
 *.html
 *.yml
-*.config
 *.yaml
 *.log
 *.tiff
