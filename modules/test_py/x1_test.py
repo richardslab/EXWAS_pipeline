@@ -30,8 +30,5 @@ def get_param():
   print(cargs.cfile)
   return
 
-def print_env():
-  
-  return
 get_param()
 
