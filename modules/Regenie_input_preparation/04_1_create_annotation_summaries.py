@@ -160,6 +160,8 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
+  CONSTANT = CONFIG.CONST
+  CONST_NUMERIC = CONFIG.CONST_NUMERIC
   
   sys.path.append(CONFIG.script_dir)
   from python_helpers.vep_helpers import parse_vep
