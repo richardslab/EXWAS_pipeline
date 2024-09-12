@@ -36,8 +36,8 @@ problem_batches$X.. <- unlist(
 )
 
 
-intersect(clsa_met$id,problem_batches$X.ADM_GWAS3_COM.)
-intersect(train_fam$V1,problem_batches$X.ADM_GWAS3_COM.)
+
+length(intersect(train_fam$V1,problem_batches$X.ADM_GWAS3_COM.))/nrow(train_fam)
 intersect(test_fam$id,problem_batches$X.ADM_GWAS3_COM.)
 intersect(val_fam$id,problem_batches$X.ADM_GWAS3_COM.)
 

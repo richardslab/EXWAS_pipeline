@@ -19,22 +19,45 @@
     5. Create set list file for VCF
 */
 
+log.info """
+              Regenie ExWAS pipeline
+==================================================
+Prepare and run ExWAS gene burden tests from input VCF files
 
-process QC_config_file {
+  # input data
+  Input vcf file: ${params.input_vcf}
 
+  # output data
+  output directory: ${params.outdir}
+
+  # pipeline configurations
+  conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
+  pipeline configuration: ${params.config_file}
+
+"""
+
+include {say_hi} from "./modules/test_py"
+process conda_info {
+  
   output:
-    stdout
+  stdout
 
   script:
-  // baseDir references the path containing the current nextflow script
-  // to obtain parent directory, use dirname of bash
-  // escape characters accordingly.
-    """
-    #!/bin/bash
-    which python
-    """
+  """
+  echo \$CONDA_PREFIX
+  """
 }
 
 workflow {
-  QC_config_file() | view
+  hi_ch = say_hi('hello')
+  prefix_ch = conda_info
+  hi_ch | view { it }
+  // prefix_ch | view { it }
+}
+
+
+
+workflow.onComplete {
+	log.info (
+    workflow.success ? '\nDone!' : '\nPipeline did not complete' )
 }

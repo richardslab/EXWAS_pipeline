@@ -1,5 +1,6 @@
 import subprocess as sp
 import argparse
+
 def hello():
   print("hi")
   return
@@ -11,6 +12,13 @@ def write_hello():
   return
 
 def get_param():
+  sp.run(
+    'echo $CONDA_PREFIX',check=True,shell=True
+  )
+  sp.run(
+    'echo $(which python)',check=True,shell=True
+  )
+  import pyreadr
   parser = argparse.ArgumentParser()
   parser.add_argument('-c',type=str,nargs=1,dest='cfile')
   cargs = parser.parse_args()
@@ -18,9 +26,7 @@ def get_param():
   return
 
 def print_env():
-  sp.run(
-    ['which','python'],check=True
-  )
+  
   return
-print_env()
+get_param()
 
