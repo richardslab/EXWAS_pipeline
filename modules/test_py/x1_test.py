@@ -18,7 +18,12 @@ def get_param():
   sp.run(
     'echo $(which python)',check=True,shell=True
   )
-  import pyreadr
+  sp.run(
+    'conda info',check=True,shell=True
+  )
+  sp.run(
+    'echo $PATH',check=True,shell=True
+  )
   parser = argparse.ArgumentParser()
   parser.add_argument('-c',type=str,nargs=1,dest='cfile')
   cargs = parser.parse_args()
