@@ -37,22 +37,10 @@ Prepare and run ExWAS gene burden tests from input VCF files
 """
 
 include {say_hi} from "./modules/test_py"
-process conda_info {
-  
-  output:
-  stdout
-
-  script:
-  """
-  echo \$CONDA_PREFIX
-  """
-}
 
 workflow {
   hi_ch = say_hi('hello')
-  prefix_ch = conda_info
   hi_ch | view { it }
-  // prefix_ch | view { it }
 }
 
 
