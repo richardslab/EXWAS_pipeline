@@ -163,7 +163,7 @@ if __name__ == "__main__":
   CONSTANT = CONFIG.CONST
   CONST_NUMERIC = CONFIG.CONST_NUMERIC
   
-  sys.path.append(CONFIG.script_dir)
+  sys.path.append(CONFIG.Regenie_input_prep_scripts)
   from python_helpers.vep_helpers import parse_vep
   from python_helpers.vep_helpers import parse_vep_headers
 

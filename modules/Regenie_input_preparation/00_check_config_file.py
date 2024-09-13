@@ -19,9 +19,9 @@ def __check_path_exists():
     "plink" : os.path.isfile(CONFIG.plink),
     "plink2" : os.path.isfile(CONFIG.plink2),
     "vep_docker": os.path.isfile(CONFIG.vep_docker_image),
-    "script_dir": os.path.isdir(CONFIG.script_dir),
+    "Regenie_input_prep_scripts": os.path.isdir(CONFIG.Regenie_input_prep_scripts),
     "wdir": os.path.isdir(CONFIG.wdir),
-    "helper_dir": os.path.isdir(os.path.join(CONFIG.script_dir,"python_helpers"))
+    "helper_dir": os.path.isdir(os.path.join(CONFIG.Regenie_input_prep_scripts,"python_helpers"))
   }
   assert(
     all(list(path_existence.values()))
@@ -140,20 +140,18 @@ if __name__ == "__main__":
   parser.add_argument(
     '--config_file','-c',
     dest='cfile',
-    default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
+    type=str,
     help='configuration yaml file'
   )
   parser.add_argument(
     '--input_vcf','-i',
     dest='input_vcf',
-    nargs=1,
     help="input VCF file",
     type=str
   )
   parser.add_argument(
     '--wdir',
     dest='wdir',
-    nargs=1,
     help="Output directory",
     type=str
   )
@@ -166,6 +164,7 @@ if __name__ == "__main__":
   print(f"Using {os.path.basename(cargs.cfile)}")
   print(f"Using {os.path.basename(cargs.input_vcf)}")
   print(f"Outputs in {cargs.wdir}")
+  
 
 
   with open(cargs.cfile,'r') as ptr:

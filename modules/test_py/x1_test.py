@@ -12,18 +12,19 @@ def write_hello():
   return
 
 def get_param():
-  sp.run(
-    'echo $CONDA_PREFIX',check=True,shell=True
-  )
+  # sp.run(
+  #   'echo $CONDA_PREFIX',check=True,shell=True
+  # )
   sp.run(
     'echo $(which python)',check=True,shell=True
   )
-  sp.run(
-    'conda info',check=True,shell=True
-  )
-  sp.run(
-    'echo $PATH',check=True,shell=True
-  )
+  # sp.run(
+  #   'conda info',check=True,shell=True
+  # )
+  # sp.run(
+  #   'echo $PATH',check=True,shell=True
+  # )
+  import pyreadr
   parser = argparse.ArgumentParser()
   parser.add_argument('-c',type=str,nargs=1,dest='cfile')
   cargs = parser.parse_args()

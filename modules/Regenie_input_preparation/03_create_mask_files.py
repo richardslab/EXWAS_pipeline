@@ -95,7 +95,7 @@ if __name__ == "__main__":
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
 
-  sys.path.append(CONFIG.script_dir)
+  sys.path.append(CONFIG.Regenie_input_prep_scripts)
   from python_scripts.python_helpers.vep_helpers import parse_vep_headers
   
 
