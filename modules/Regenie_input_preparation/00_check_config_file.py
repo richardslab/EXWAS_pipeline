@@ -20,7 +20,7 @@ def __check_path_exists():
     "plink2" : os.path.isfile(CONFIG.plink2),
     "vep_docker": os.path.isfile(CONFIG.vep_docker_image),
     "Regenie_input_prep_scripts": os.path.isdir(CONFIG.Regenie_input_prep_scripts),
-    "wdir": os.path.isdir(CONFIG.wdir),
+    "wdir": os.path.isdir(WDIR),
     "helper_dir": os.path.isdir(os.path.join(CONFIG.Regenie_input_prep_scripts,"python_helpers"))
   }
   assert(
@@ -133,6 +133,8 @@ def main():
   __check_all_plugins_have_orders()
   __check_def_have_plugin_orders()
 
+  print("Configuration file ok")
+
   return
 
 if __name__ == "__main__":
@@ -155,16 +157,32 @@ if __name__ == "__main__":
     help="Output directory",
     type=str
   )
+  parser.add_argument(
+    '--test',
+    default='f',
+    type=str
+  )
   cargs =   parser.parse_args()
+
+  if cargs.test == 't':
+    import mock
+    cargs = mock.Mock()
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    print("TEST")
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
   assert(cargs.wdir),'output directory missing'
-  print(f"Using {os.path.basename(cargs.cfile)}")
-  print(f"Using {os.path.basename(cargs.input_vcf)}")
-  print(f"Outputs in {cargs.wdir}")
   
+  print("Checking configuration file")
+  print("="*20)
+  print(f"Config file: {os.path.basename(cargs.cfile)}")
+  print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
+  print(f"output dir: {cargs.wdir}")
+  print("="*20)
 
 
   with open(cargs.cfile,'r') as ptr:
@@ -172,6 +190,5 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
-
 
   main()
