@@ -50,14 +50,17 @@ def normalize_vcf(vcf_outfile):
     bcftool_annotate_cmd,
     stdin = bcftool_align.stdout,
     stdout = sp.PIPE,
+    stderr=sp.PIPE,
     universal_newlines=True
   )
   bcftool_gen_var_only = sp.run(
     bcftool_var_only_file_cmd,
     stdin = bcftool_annotate.stdout,
+    stderr = sp.PIPE,
     check=True
   )
   # when each process finishes, sends signal indicate it is done
+  # we don't need the stdout, just the error
   bcftool_align.stdout.close()
   bcftool_annotate.stdout.close()
   # wait for all processes to finish and check exit status
@@ -68,13 +71,10 @@ def normalize_vcf(vcf_outfile):
     bcftool_annotate.returncode == 0 and
     bcftool_gen_var_only.returncode == 0
   ),'issue with generating vcf'
-  print(bcftool_align_res.stdout.decode('utf-8'))
-  print(bcftool_align_res.stderr.decode('utf-8'))
-  print(bcftool_annotate_res.stdout.decode('utf-8'))
-  print(bcftool_annotate_res.stderr.decode('utf-8'))
-  print(bcftool_gen_var_only.stdout.decode('utf-8'))
+  print(bcftool_align_res[1])
+  print(bcftool_annotate_res[1])
   print(bcftool_gen_var_only.stderr.decode('utf-8'))
-  
+  print("="*20)
 
   # index the vcf file with tabix
   tabix_cmd = [
@@ -87,10 +87,10 @@ def normalize_vcf(vcf_outfile):
   )
   print("="*20)
   tabix_run = sp.run(
-    tabix_cmd,check=True
+    tabix_cmd,check=True,stderr=sp.PIPE
   )
-  print(tabix_run.stdout.decode("utf-8"))
   print(tabix_run.stderr.decode("utf-8"))
+  print("="*20)
   
   return
 
