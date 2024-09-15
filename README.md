@@ -15,24 +15,17 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 
 Making conda environment on first run will take some time. As long as the conda cache dir is not deleted, the environment will not be made again.
 
-## Required files:
+## Required files (examples in config_templates):
  * exwas_pipeline.yml: conda environment file to execute the python scripts
-   * Specifies required python packages
  * nextflow_template.config: nextflow configuration
-   * Specifies:
-     * input VCF files
-     * output directory
-     * ExWAS configurations
  * proj_config_template.yml: ExWAS configuration yaml files:
-   * Program executable paths:
-     * nextflow >= 23.10.0
-     * bcftools
-     * tabix
-     * plink
-     * plink2
-     * vep apptainer image
-     * vep cache directory
-     * regenie executable
-     * python script and heper files
-   * ExWAS parameters
-     * Mask definitions
+## program requirements:
+ * nextflow >= 23.10.0
+ * python 3.10.9
+ * apptainer >= 1.2.4
+ * bcftools
+ * tabix
+ * plink
+ * plink2
+ * vep apptainer image (probably will be provided, or make from definition file)
+ * regenie
