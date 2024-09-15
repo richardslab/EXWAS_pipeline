@@ -55,13 +55,15 @@ Prepare and run ExWAS gene burden tests from input VCF files
 """
 
 // Regenie input processing
-include {check_yaml_config; align_vcf} from "./modules/Regenie_input_preparation"
+include {check_yaml_config; align_vcf; annotate_vcf} from "./modules/Regenie_input_preparation"
 
 workflow {
 
   check_yaml_config(params.config_file,params.input_vcf,params.outdir)
 
   align_vcf(params.config_file,params.input_vcf,params.outdir)
+  
+  annotate_vcf(params.config_file,params.input_vcf,params.outdir)
 
 }
 

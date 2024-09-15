@@ -49,3 +49,22 @@ process align_vcf{
   python -u ${baseDir}/modules/Regenie_input_preparation/01_align_format_vcf.py -c ${config_file} -i ${input_vcf} --wdir ${wdir} | tee 02_vcf_alignment.log
   """
 }
+
+process annotate_vcf {
+  storeDir params.outdir
+  input:
+    val config_file
+    val input_vcf
+    val wdir
+
+  output:
+    path "03_vep_annotation.logs"
+    // path "2_${vcf_file_name}_vcf_final_annotation.txt"
+
+  script:
+  """
+  set -o pipefail
+  python -u ${baseDir}/modules/Regenie_input_preparation/02_annotate_with_vep.py -c ${config_file} -i ${input_vcf} --wdir ${wdir} | tee 03_vep_annotation.logs
+  """
+
+}
