@@ -19,7 +19,7 @@ Making conda environment on first run will take some time. As long as the conda 
  * exwas_pipeline.yml: conda environment file to execute the python scripts
  * nextflow_template.config: nextflow configuration
  * proj_config_template.yml: ExWAS configuration yaml files:
-## program requirements:
+## program requirements (paths to be specified in proj_config_template.yml):
  * nextflow >= 23.10.0
  * python 3.10.9
  * apptainer >= 1.2.4
