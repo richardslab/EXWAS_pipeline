@@ -6,7 +6,7 @@
 3. Fill in nextflow_template.config and proj_config_template.yml
 4. run:
 ```
-   nextflow run <path>/main.nf -c <path>/nextflow_template.config -profile conda
+nextflow run <path>/main.nf -c <path>/nextflow_template.config -profile conda
 ```
 OR edit run_nextflow_template.sh with proper in/out directories for nextflow. then run
 ```
