@@ -1,4 +1,4 @@
-# This is to make apptainer image from the docker image Guillaume made
+# This is to convert the docker vep image to the vep image
 BootStrap: docker
 From: monsieurbl/vep_pipeline:v1
 
