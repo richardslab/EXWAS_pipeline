@@ -1,4 +1,5 @@
-# This is 
+# This is the definition file to make apptainer vep image. Should be the same as the dockerfile used to make
+# monsieurbl/vep_pipeline:v1 (https://hub.docker.com/r/monsieurbl/vep_pipeline/tags)
 BootStrap: docker
 From: mambaorg/micromamba:latest
 
