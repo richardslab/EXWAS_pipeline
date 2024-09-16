@@ -83,6 +83,7 @@ From: mambaorg/micromamba:latest
 		apptainer run -C vep_apptainer "$@"
 	e.g., to see VEP installation directory
 		apptainer run -C vep_apptainer "echo \$VEP_SHARE"
+		apptainer run -C vep_apptainer 'echo $VEP_SHARE'
 	
 	Bind to appropriate host FS using -B command to read/write files, such as installation of cache
 

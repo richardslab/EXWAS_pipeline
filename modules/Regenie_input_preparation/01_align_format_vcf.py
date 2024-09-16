@@ -38,7 +38,7 @@ def normalize_vcf(vcf_outfile):
   print(
     f"{' '.join(bcftool_align_cmd)} | {' '.join(bcftool_annotate_cmd)} | {' '.join(bcftool_var_only_file_cmd)}"
   )
-  print("="*20)
+  print("*"*20)
   # run the commands and create the file
   bcftool_align = sp.Popen(
       bcftool_align_cmd,
@@ -85,7 +85,7 @@ def normalize_vcf(vcf_outfile):
   print(
     " ".join(tabix_cmd)
   )
-  print("="*20)
+  print("*"*20)
   tabix_run = sp.run(
     tabix_cmd,check=True,stderr=sp.PIPE
   )
@@ -122,7 +122,7 @@ def generate_plink_files(vcf_outfile,plink_output):
   return
 
 def main():
-  vcf_outfile = os.path.join(WDIR,f'1_{VCF_NAME}_bcftool_variant_only.set_ids.no_genotypes.vcf.gz')
+  vcf_outfile = os.path.join(WDIR,f'2_{VCF_NAME}_bcftool_variant_only.set_ids.no_genotypes.vcf.gz')
   normalize_vcf(vcf_outfile)
 
   return

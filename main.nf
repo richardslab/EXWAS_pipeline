@@ -55,16 +55,27 @@ Prepare and run ExWAS gene burden tests from input VCF files
 """
 
 // Regenie input processing
-include {check_yaml_config; align_vcf; annotate_vcf} from "./modules/Regenie_input_preparation"
+include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_annotation_summaries; create_annotation_file; create_setlist_file} from "./modules/Regenie_input_preparation"
+
+workflow regenie_input_prep {
+
+  check_yaml_config(params.config_file,params.input_vcf,params.outdir)  
+
+  align_vcf(params.config_file,params.input_vcf,params.outdir,check_yaml_config.out.log)
+  
+  annotate_vcf(params.config_file,params.input_vcf,params.outdir,align_vcf.out.log)
+
+  create_mask_files(params.config_file,params.input_vcf,params.outdir,annotate_vcf.out.log)
+
+  create_annotation_summaries(params.config_file,params.input_vcf,params.outdir,create_mask_files.out.log)
+
+  create_annotation_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+
+  create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+}
 
 workflow {
-
-  check_yaml_config(params.config_file,params.input_vcf,params.outdir)
-
-  align_vcf(params.config_file,params.input_vcf,params.outdir)
-  
-  annotate_vcf(params.config_file,params.input_vcf,params.outdir)
-
+  regenie_input_prep()
 }
 
 

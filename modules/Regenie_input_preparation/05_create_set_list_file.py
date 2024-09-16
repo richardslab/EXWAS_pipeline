@@ -10,8 +10,10 @@ import argparse
 from pathlib import Path
 
 def main():
+  print("creating set list file")
+  print("*"*20)
   vep_summarie_file = os.path.join(
-    WDIR,'vep_consequence_summaries',f"{VCF_NAME}_vep_summaries.json.gz"
+    WDIR,f"5_1_{VCF_NAME}_vep_summaries.json.gz"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -21,8 +23,9 @@ def main():
     vep_summaries = json.load(ptr)
 
   setlist_file = os.path.join(
-    WDIR,'vep_consequence_summaries',f"{VCF_NAME}.setlist"
+    WDIR,f"6_{VCF_NAME}.setlist"
   )
+  print(f"set list file written to {setlist_file}")
   with open(setlist_file,'w') as ptr:
     for gene,vars in vep_summaries.items():
       min_position = None
@@ -51,8 +54,9 @@ def main():
           assert(gene_chr == var_chr),f"different chr for same gene {gene} {var}"
       all_vars_str = ",".join(all_vars)
       ptr.write(
-        "{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n"
+        f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n"
       )
+
 
 
   return 
@@ -62,32 +66,34 @@ if __name__ == "__main__":
   parser.add_argument(
     '--config_file','-c',
     dest='cfile',
-    default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
   parser.add_argument(
     '--input_vcf','-i',
     dest='input_vcf',
-    nargs=1,
     help="input VCF file",
     type=str
   )
   parser.add_argument(
     '--wdir',
     dest='wdir',
-    nargs=1,
     help="Output directory",
+    type=str
+  )
+  parser.add_argument(
+    '--test',
+    default='f',
     type=str
   )
   cargs =   parser.parse_args()
 
-
-  assert(os.path.isfile(cargs.cfile)),'config file is missing'
-  assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
-  assert(cargs.wdir),'output directory missing'
-  print(f"Using {os.path.basename(cargs.cfile)}")
-  print(f"Using {os.path.basename(cargs.input_vcf)}")
-  print(f"Outputs in {cargs.wdir}")
+  if cargs.test =='t':
+    from unittest import mock
+    cargs = mock.Mock()
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    print("TEST")
 
 
   with open(cargs.cfile,'r') as ptr:
@@ -96,6 +102,15 @@ if __name__ == "__main__":
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
   sys.path.append(CONFIG.Regenie_input_prep_scripts)
+
+
+  print("Creating se list file")
+  print("="*20)
+  print(f"Config file: {os.path.basename(cargs.cfile)}")
+  print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
+  print(f"output dir: {cargs.wdir}")
+  print("="*20)
+
 
 
 

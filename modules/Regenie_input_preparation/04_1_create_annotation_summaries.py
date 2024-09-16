@@ -10,11 +10,12 @@ from collections import namedtuple
 import argparse
 
 def main():
-  expected_annotation_file = os.path.join(WDIR,f'2_{VCF_NAME}_vcf_final_annotation.txt')
-
-  outdir = os.path.join(WDIR,'vep_consequence_summaries')
-  os.makedirs(outdir,exist_ok=True)
+  expected_annotation_file = os.path.join(WDIR,f'3_{VCF_NAME}_vcf_final_annotation.txt')
   
+  print("Summarizing all VEP annotations")
+  print("*"*20)
+  print("The most severe consequence per gene (across transcripts) are kept")
+  print(f"Consequence order obtained from {cargs.cfile}")
   line_num = 0
   vep_summaries = dict()
   with open(expected_annotation_file,'r') as ptr:
@@ -112,14 +113,15 @@ def main():
         assert(False),f"should not reach here!"
 
   vep_summarie_file = os.path.join(
-    outdir,f"{VCF_NAME}_vep_summaries.json.gz"
+    WDIR,f"5_1_{VCF_NAME}_vep_summaries.json.gz"
   )
   with gzip.open(vep_summarie_file,'wt',encoding='utf-8') as ptr:
     json.dump(
       vep_summaries,
       ptr,ensure_ascii=False
     )
-  print(f"generated annoations for {len(vep_summaries.keys())} genes")
+  print(f"generated annotations for {len(vep_summaries.keys())} genes")
+  print("="*20)
   return 
 
 if __name__ == "__main__":
@@ -127,32 +129,46 @@ if __name__ == "__main__":
   parser.add_argument(
     '--config_file','-c',
     dest='cfile',
-    default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
   parser.add_argument(
     '--input_vcf','-i',
     dest='input_vcf',
-    nargs=1,
     help="input VCF file",
     type=str
   )
   parser.add_argument(
     '--wdir',
     dest='wdir',
-    nargs=1,
     help="Output directory",
     type=str
   )
+  parser.add_argument(
+    '--test',
+    default='f',
+    type=str
+  )
   cargs =   parser.parse_args()
+
+  if cargs.test =='t':
+    from unittest import mock
+    cargs = mock.Mock()
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    print("TEST")
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
   assert(cargs.wdir),'output directory missing'
-  print(f"Using {os.path.basename(cargs.cfile)}")
-  print(f"Using {os.path.basename(cargs.input_vcf)}")
-  print(f"Outputs in {cargs.wdir}")
+  print("Creating annotation summaries")
+  print("="*20)
+  print(f"Config file: {os.path.basename(cargs.cfile)}")
+  print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
+  print(f"output dir: {cargs.wdir}")
+  print("="*20)
+
 
 
   with open(cargs.cfile,'r') as ptr:

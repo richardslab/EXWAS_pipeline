@@ -9,7 +9,7 @@ import subprocess as sp
 import argparse
 
 
-def annotate_chr(vcf_infile,vcf_anno_out):
+def annotate_vcf(vcf_infile,vcf_anno_out):
   # binds the cache directory
   apptainer_cmd = [
     CONFIG.apptainer,
@@ -45,14 +45,14 @@ def annotate_chr(vcf_infile,vcf_anno_out):
     '--no_stats',
     '--fork',"1"
   ]
-  full_cmd = apptainer_cmd + [f"'{' '.join(vep_cmd)}'"]
+  full_cmd = apptainer_cmd + [f"{' '.join(vep_cmd)}"]
 
   print("VEP annotation apptainer commands:")
   print(" ".join(full_cmd))
-  print("="*20)
+  print("*"*20)
 
   apptainer_run = sp.run(
-    apptainer_cmd,
+    full_cmd,
     stderr = sp.PIPE,
     check=True
   )
@@ -63,10 +63,10 @@ def annotate_chr(vcf_infile,vcf_anno_out):
   return
 
 def main():
-  vcf_infile = f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes'
-  vcf_anno_out=f'2_{VCF_NAME}_vcf_final_annotation.txt'
+  vcf_infile = f'2_{VCF_NAME}_bcftool_variant_only.set_ids.no_genotypes.vcf.gz'
+  vcf_anno_out=f'3_{VCF_NAME}_vcf_final_annotation.txt'
   
-  annotate_chr(vcf_infile,vcf_anno_out)
+  annotate_vcf(vcf_infile,vcf_anno_out)
 
 
   return
@@ -97,26 +97,17 @@ if __name__ == "__main__":
   )
   cargs =   parser.parse_args()
 
-  if cargs.test == 't':
+  if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/tmp/lima"
-    cargs.input_vcf="/Users/kevinliang/Desktop/work/working/exwas_pipelines/vep_apptainer_img/example_hsGRCh38.vcf"
-
-    CONFIG = mock.Mock()
-    CONFIG.apptainer = "apptainer"
-    CONFIG.genome_build="GRCh38"
-    CONFIG.vep_docker_image = "/tmp/lima/vep_apptainer"
-    CONFIG.vep_plugins=[]
-    CONFIG.vep_cache_dir = "/tmp/lima/vep_cache"
-    CONFIG.vep_plugin_dir= "/tmp/lima/vep_cache"
+    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
     print("TEST")
 
-  else:
-    with open(cargs.cfile,'r') as ptr:
-      params = yaml.full_load(ptr)['proj_config']
-    CONFIG = namedtuple("params",params.keys())(**params)
+  with open(cargs.cfile,'r') as ptr:
+    params = yaml.full_load(ptr)['proj_config']
+  CONFIG = namedtuple("params",params.keys())(**params)
 
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir

@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from collections import namedtuple
 import argparse
+from itertools import compress
 
 def sanity_checks():
   """Make sure we have all the inputs we need and the setup is correct so far.
@@ -15,26 +16,35 @@ def sanity_checks():
   """
 
   # annotation file exists
-  expected_annotation_file = os.path.join(WDIR,f'2_{VCF_NAME}_vcf_final_annotation.txt')
+  expected_annotation_file = os.path.join(WDIR,f'3_{VCF_NAME}_vcf_final_annotation.txt')
   assert(
     os.path.isfile(expected_annotation_file)
   ),f"Missing annotation file {os.path.isfile(expected_annotation_file)}"
 
-  
+  print("Check if required plugins are in VEP annotation input")
+  print ("*" * 20)
+  print(f"Annotation file: {expected_annotation_file}")
   extra_columns = parse_vep_headers.get_vep_plugins(expected_annotation_file)
+  print(f"Vep annotation found: {extra_columns}")
   # all plugins used for mask definition exists
   for study in CONFIG.mask_definitions.keys():
     study_masks = CONFIG.mask_definitions[study]
     study_plugins = []
     for mask_def in study_masks.values():
-      study_plugins += list(set(mask_def.keys()))
+      study_plugins += list(mask_def.keys())
+      study_plugins = list(set(study_plugins))
+    plugin_membership = [x in extra_columns for x in study_plugins]
+    plugin_missing_val = list(compress(
+      study_plugins,[not x for x in plugin_membership]
+    ))
     assert(
       all(
-        [x in extra_columns for x in study_plugins]
+        plugin_membership
       )
-    ),f"Plugins needed for {study} not found"
+    ),f"Plugins needed for {study} not found: {plugin_missing_val}"
 
-  
+  print("Required plugins are in annotation file")
+  print("="*20)
   
   return
 
@@ -51,6 +61,7 @@ def main():
     with open(mask_file,'w') as ptr:
       for mask_name,mask_def in mask_names.items():
         ptr.write(f"{mask_name} {mask_def}\n")
+    print(f"Masks for {study} written to {study_outdir}")
 
 
   return
@@ -61,32 +72,46 @@ if __name__ == "__main__":
   parser.add_argument(
     '--config_file','-c',
     dest='cfile',
-    default="/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml",
     help='configuration yaml file'
   )
   parser.add_argument(
     '--input_vcf','-i',
     dest='input_vcf',
-    nargs=1,
     help="input VCF file",
     type=str
   )
   parser.add_argument(
     '--wdir',
     dest='wdir',
-    nargs=1,
     help="Output directory",
     type=str
   )
+  parser.add_argument(
+    '--test',
+    default='f',
+    type=str
+  )
   cargs =   parser.parse_args()
+
+  if cargs.test =='t':
+    from unittest import mock
+    cargs = mock.Mock()
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    print("TEST")
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
   assert(cargs.wdir),'output directory missing'
-  print(f"Using {os.path.basename(cargs.cfile)}")
-  print(f"Using {os.path.basename(cargs.input_vcf)}")
-  print(f"Outputs in {cargs.wdir}")
+
+  print("Creating mask files")
+  print("="*20)
+  print(f"Config file: {os.path.basename(cargs.cfile)}")
+  print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
+  print(f"output dir: {cargs.wdir}")
+  print("="*20)
 
 
   with open(cargs.cfile,'r') as ptr:
@@ -96,7 +121,7 @@ if __name__ == "__main__":
   WDIR = cargs.wdir
 
   sys.path.append(CONFIG.Regenie_input_prep_scripts)
-  from python_scripts.python_helpers.vep_helpers import parse_vep_headers
+  from python_helpers.vep_helpers import parse_vep_headers
   
 
   main()
