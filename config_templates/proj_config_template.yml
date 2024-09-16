@@ -89,10 +89,22 @@ annotation_consequence_orders: &annotation_consequence_orders
 
 
 annotation_inputs: &annotation_inputs 
-  # plugin must be available in the vep apptainer image
-  # all vep cache must exist  in vep_cache_dir
-  # all plugins must exist in  vep_plugins_dir
-  vep_plugins: &vep_plugins ""
+  # plugins are assumed to be in vep_plugins_dir
+  # plugin arguments are assumed to be in vep_cache_dir
+  ## loftee was installed in the vep apptainer image already
+
+  # use $vep_cache_dir and $vep_plugins_dir in place of absolute path. 
+  # Will be replaced accordingly in script
+
+  vep_plugins: &vep_plugins [
+    # loftee
+    "LoF,loftee_path:$vep_plugins_dir,human_ancestor_fa:$vep_cache_dir/human_ancestor.fa.gz,conservation_file:$vep_cache_dir/loftee.sql,gerp_bigwig:$vep_cache_dir/gerp_conservation_scores.homo_sapiens.GRCh38.bw",
+    # CADD  
+    "CADD,snv=$vep_cache_dir/whole_genome_SNVs.tsv.gz",
+    # dbNSFP
+    "dbNSFP,$vep_cache_dir/dbNSFP4.8a_grch38.gz,gnomAD_genomes_AFR_AF,gnomAD_genomes_AMI_AF,gnomAD_genomes_AMR_AF,gnomAD_genomes_ASJ_AF,gnomAD_genomes_EAS_AF,gnomAD_genomes_FIN_AF,gnomAD_genomes_MID_AF,gnomAD_genomes_NFE_AF,gnomAD_genomes_SAS_AF,EVE_Class25_pred,VEP_canonical,LRT_pred,SIFT_pred,SIFT4G_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,AlphaMissense_pred"
+  ]
+
 
 
 
