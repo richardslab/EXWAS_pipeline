@@ -98,14 +98,28 @@ if __name__ == "__main__":
   cargs =   parser.parse_args()
 
   if cargs.test == 't':
-    import mock
+    from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    cargs.wdir="/tmp/lima"
+    cargs.input_vcf="/Users/kevinliang/Desktop/work/working/exwas_pipelines/vep_apptainer_img/example_hsGRCh38.vcf"
+
+    CONFIG = mock.Mock()
+    CONFIG.apptainer = "apptainer"
+    CONFIG.genome_build="GRCh38"
+    CONFIG.vep_docker_image = "/tmp/lima/vep_apptainer"
+    CONFIG.vep_plugins=[]
+    CONFIG.vep_cache_dir = "/tmp/lima/vep_cache"
+    CONFIG.vep_plugin_dir= "/tmp/lima/vep_cache"
     print("TEST")
 
+  else:
+    with open(cargs.cfile,'r') as ptr:
+      params = yaml.full_load(ptr)['proj_config']
+    CONFIG = namedtuple("params",params.keys())(**params)
 
+  VCF_NAME = os.path.basename(cargs.input_vcf)
+  WDIR = cargs.wdir
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
   assert(cargs.wdir),'output directory missing'
@@ -117,12 +131,7 @@ if __name__ == "__main__":
   print(f"output dir: {cargs.wdir}")
   print("="*20)
 
-
-  with open(cargs.cfile,'r') as ptr:
-    params = yaml.full_load(ptr)['proj_config']
-  CONFIG = namedtuple("params",params.keys())(**params)
-  VCF_NAME = os.path.basename(cargs.input_vcf)
-  WDIR = cargs.wdir
+  
   
   main()
 
