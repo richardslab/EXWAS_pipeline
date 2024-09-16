@@ -59,7 +59,7 @@ process annotate_vcf {
 
   output:
     path "03_vep_annotation.logs"
-    // path "2_${vcf_file_name}_vcf_final_annotation.txt"
+    path "2_${vcf_file_name}_vcf_final_annotation.txt"
 
   script:
   """

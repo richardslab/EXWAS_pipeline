@@ -19,6 +19,8 @@ def annotate_chr(vcf_infile,vcf_anno_out):
     'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
     CONFIG.vep_docker_image
   ]
+
+  ## all the paths in here are relative to the paths within the apptainer image
   vep_cmd = [
     # for input format
     'vep','-i',f"/tmp/vep_wdir/{vcf_infile}",
@@ -33,7 +35,6 @@ def annotate_chr(vcf_infile,vcf_anno_out):
   # add each plugin option and replace 
   #   $vep_cache_dir with /tmp/vep_cache
   #   $vep_plugins_dir with /tmp/vep_plugins
-  # These are the paths that is binded to the apptainer.
   for x in CONFIG.vep_plugins:
     replaced_x = re.sub("\$vep_cache_dir",'/tmp/vep_cache',x)
     replaced_x = re.sub("\$vep_plugins_dir",'/tmp/vep_plugins',replaced_x)
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/scratch/richards/kevin.liang2/exwas_pipeline/data/example_homo_sapiens_GRCh38.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
     print("TEST")
 
 
