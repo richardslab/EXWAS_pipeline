@@ -1,7 +1,7 @@
 """
   This is base on Ethan's script but rewritten in python with inputs specified from configuration file
 """
-import os,yaml,pickle,pyreadr,shutil,sys
+import os,yaml,pickle,pyreadr,shutil,sys,re
 import pandas as pd
 import numpy as np
 from collections import namedtuple
@@ -17,8 +17,11 @@ def annotate_chr(vcf_infile,vcf_anno_out):
     # -C nothing in host system accessible except for binded ones
     # https://docs-dev.alliancecan.ca/wiki/Using_Apptainer#Official_Apptainer_documentation
     'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
+    CONFIG.vep_docker_image
+  ]
+  vep_cmd = [
     # for input format
-    'vep','-i',vcf_infile,
+    'vep','-i',f"/tmp/vep_wdir/{vcf_infile}",
     '--assembly',CONFIG.genome_build,
     '--format','vcf', 
     '--cache',
@@ -27,15 +30,24 @@ def annotate_chr(vcf_infile,vcf_anno_out):
     '--dir_cache','/tmp/vep_cache',
     '--dir_plugins','/tmp/vep_plugins'
   ]
-  for x in [['--plugin',x] for x in CONFIG.vep_plugins]:
-    apptainer_cmd += x
-  apptainer_cmd += [
+  # add each plugin option and replace 
+  #   $vep_cache_dir with /tmp/vep_cache
+  #   $vep_plugins_dir with /tmp/vep_plugins
+  # These are the paths that is binded to the apptainer.
+  for x in CONFIG.vep_plugins:
+    replaced_x = re.sub("\$vep_cache_dir",'/tmp/vep_cache',x)
+    replaced_x = re.sub("\$vep_plugins_dir",'/tmp/vep_plugins',replaced_x)
+    vep_cmd += ['--plugin',replaced_x]
+  vep_cmd += [
     '--offline',
-    '--symbol','--coding_only','--no_stats'
+    '--symbol','--coding_only',
+    '--no_stats',
     '--fork',"1"
   ]
+  full_cmd = apptainer_cmd + [f"'{' '.join(vep_cmd)}'"]
+
   print("VEP annotation apptainer commands:")
-  print(" ".join(apptainer_cmd))
+  print(" ".join(full_cmd))
   print("="*20)
 
   apptainer_run = sp.run(
@@ -50,7 +62,7 @@ def annotate_chr(vcf_infile,vcf_anno_out):
   return
 
 def main():
-  vcf_infile = os.path.join(WDIR,f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes')
+  vcf_infile = f'1_{VCF_NAME}_bcftool_variant_only_vcf.set_id.no_genotypes'
   vcf_anno_out=f'2_{VCF_NAME}_vcf_final_annotation.txt'
   
   annotate_chr(vcf_infile,vcf_anno_out)
