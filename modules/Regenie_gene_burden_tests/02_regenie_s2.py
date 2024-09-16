@@ -4,20 +4,48 @@ import os,sys,shutil,yaml,re,argparse
 from collections import namedtuple
 import subprocess as sp
 
-def main():
-  
-  s2_cmd = [CONFIG.regenie]
+
+def _run_regenie_s2_each_study(study):
+  study_outdir = os.path.join(WDIR,study)
+
+  s2_cmd = [
+    CONFIG.regenie,
+    "--step","2",
+    "--bfile",f"2_{VCF_NAME}",
+    "--anno-file",f"{VCF_NAME}_annotations.txt"
+    "--mask-def",f"{study}_masks.txt"
+    "--set-list",os.path.join(WDIR,f"6_{VCF_NAME}.setlist")
+  ]
   for k,v in CONFIG.s2_params.items():
+    if k == "--lowmem-prefix":
+      v = os.path.join(WDIR,v)
     if v == "":
       s2_cmd += [k]
     elif v != "":
       s2_cmd += [f"{k} {v}"]
     else:
-      assert False, 'invalid Regenie Step 2 value format issue in config file {k} {v}'
+      assert False, 'invalid Regenie Step 2 value format issue in config file {k} {v}'    
+  s2_cmd += [
+    "--pred",os.path.join(WDIR,"7_{VCF_NAME}_regenie_S1_OUT"),
+    "--out",os.path.join(study_outdir,"8_{VCF_NAME}__regenie_S2_OUT")
+  ]
+  print("Regenie S2 command:")
+  print(" ".join(s2_cmd))
+  print("*"*20)
   s2_out = sp.run(
     s2_cmd,check=True,stderr=sp.PIPE
   )
   print(s2_out.stderr.decode("utf-8"))
+  print("="*20)
+
+  return
+
+def main():
+  studies = list(CONFIG.mask_names.keys())
+  assert(len(list(set(studies))) == len(studies)),"duplicated studies specified"
+
+  for each_study in studies:
+    _run_regenie_s2_each_study(each_study)
 
   return
 

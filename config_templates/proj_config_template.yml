@@ -30,7 +30,7 @@ annotation_consequence_orders: &annotation_consequence_orders
 
   # determines which direction is more severe (higher or lower)
   CONST_NUMERIC: {
-    "CADD_phred":"higher"
+    "CADD_PHRED":"higher"
   }
 
   # the order of severity from most to least (left to right)

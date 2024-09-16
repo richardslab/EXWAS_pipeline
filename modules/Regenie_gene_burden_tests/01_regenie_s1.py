@@ -7,21 +7,30 @@ import subprocess as sp
 def main():
 
   s1_cmd = [
-    CONFIG.regenie
+    CONFIG.regenie,"--step","1"
   ]
   for k,v in CONFIG.s1_params.items():
+    if k == "--lowmem-prefix":
+      v = os.path.join(WDIR,v)
     if v == "":
       s1_cmd += [k]
     elif v != "":
       s1_cmd += [f"{k} {v}"]
     else:
       assert False, 'invalid Regenie step 1value format issue in config file {k} {v}'
-      
+  s1_cmd += [
+    "--out",os.path.join(WDIR,f"7_{VCF_NAME}_regenie_S1_OUT")
+  ]
+  
+  print("Regenie S1 command:")
+  print(" ".join(s1_cmd))
+  print("*"*20)
+
   s1_out = sp.run(
     s1_cmd,check=True,stderr= sp.PIPE
   )
   print(s1_out.stderr.decode('utf-8'))
-
+  print("="*20)
   return
 
 if __name__ == "__main__":
@@ -52,7 +61,7 @@ if __name__ == "__main__":
   cargs =   parser.parse_args()
 
   if cargs.test == 't':
-    import mock
+    from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"

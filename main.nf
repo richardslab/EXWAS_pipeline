@@ -1,14 +1,14 @@
 /**
 *  This is the main ExWAS workflow using Regenie.
 *
-*  Consists of 2 main workflow:
+*  Consists of 2 parts:
 *    1. preparing input files for Regenie
 *    2. Running regenie
 *  
 *  Main data analysis are done in python.
 *  Data inputs are specified in a YAML parameter_file.
 *
-*  workflow 1: preparing regenie input files
+*  1: preparing regenie input files
 *    #' VCF processing
 *    1. Align input VCF file
 *    2. Annotate input VCF file with VEP
@@ -17,6 +17,7 @@
 *    3. Create mask file for the VCF
 *    4. Create annotation file for VCF
 *    5. Create set list file for VCF
+*  2. Run regenie burden testing
 */
 
 
@@ -57,7 +58,9 @@ Prepare and run ExWAS gene burden tests from input VCF files
 // Regenie input processing
 include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_annotation_summaries; create_annotation_file; create_setlist_file} from "./modules/Regenie_input_preparation"
 
-workflow regenie_input_prep {
+include {run_regenie_s1} from "./modules/Regenie_gene_burden_tests"
+
+workflow regenie_workflow {
 
   check_yaml_config(params.config_file,params.input_vcf,params.outdir)  
 
@@ -75,7 +78,7 @@ workflow regenie_input_prep {
 }
 
 workflow {
-  regenie_input_prep()
+  regenie_workflow()
 }
 
 
