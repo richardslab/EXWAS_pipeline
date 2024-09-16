@@ -164,7 +164,44 @@ regenie_annotation_mask: &regenie_annotation_mask
   vep_gene: &vep_gene "Gene"
   vep_annotations: &vep_annotations "Extra"
 
+regenie_burden_testing: &regenie_burden_testing
+  # Provide all flags except for output flags which will be determined based on input file names
+  
+  ## keys will be passed as is to Regenie so must be valid Regenie flags
+  ## flags with no inputs should be left as empty string
+  
 
+
+  # Step 1 parameters
+  s1_params: &s1_params {
+    "--bed":"",
+    "--covarFile":"",
+    "--phenoFile":"",
+    "--keep":"",
+    "--phenoCol":"Trait",
+    "--covarColList":"",
+    "--catCovarList":"",
+    "--bsize":"1000",
+    "--lowmem":"",
+    "--lowmem-prefix":"tmp_rg_trait",
+  }
+
+  # Step 2 (burden testing parameters)
+  s2_params: &s2_params {
+    "--aaf-bins" : "0.05,0.01",
+    "--ref-first":"",
+    "--bt":"",
+    "--firth":"",
+    "--approx":"",
+    "--phenoCol":"TRAIT",
+    "covarColClist":"Age,Age_square,sex_age_interaction",
+    "catCovarList":"biological_sex",
+    "vc-tests":"skato",
+    "vc-maxAAF":"0.01",
+    "--build-mask":"max",
+    "--joint":"acat",
+    "--bsize":"200"
+  }
 
 proj_config: &proj_config
   <<: *programs
@@ -172,6 +209,7 @@ proj_config: &proj_config
   <<: *annotation_consequence_orders
   <<: *vcf_alignment
   <<: *regenie_annotation_mask
+  <<: *regenie_burden_testing
 
   # the input file must be in this build
   genome_build: &genome_build "GRCh38"
