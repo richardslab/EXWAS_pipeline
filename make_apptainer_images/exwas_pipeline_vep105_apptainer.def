@@ -1,5 +1,6 @@
 # This is the definition file to make apptainer vep image. Should be the same as the dockerfile used to make
 # monsieurbl/vep_pipeline:v1 (https://hub.docker.com/r/monsieurbl/vep_pipeline/tags)
+# without loftee installation
 BootStrap: docker
 From: mambaorg/micromamba:latest
 
@@ -18,8 +19,7 @@ From: mambaorg/micromamba:latest
 
 
 	# set up working directory for VEP installation and directory to binds
-	mkdir "/tmp/vep_wdir"
-	mkdir "/tmp/vep_plugins"
+	
 	wdir="/tmp/vep_cache"
 	mkdir $wdir
 	cd $wdir
@@ -38,26 +38,15 @@ From: mambaorg/micromamba:latest
 	# install perl modules into base
 	micromamba install -y --prefix $MAMBA_ROOT_PREFIX -c bioconda -c conda-forge perl-bio-bigfile perl-dbd-sqlite perl-list-moreutils samtools
 
-	# Run this in base clone loftee GRCh38
-	# # the micromamba run part is the 'SHELL []' bit in docker file
-	micromamba run --prefix $MAMBA_ROOT_PREFIX /bin/bash -c "git clone -b grch38 https://github.com/konradjk/loftee.git"
-
 
 	# export environment variables
 	export VEP_SHARE=$MAMBA_ROOT_PREFIX/share/ensembl-vep-$VERSION-*
 	echo "export VEP_SHARE=${MAMBA_ROOT_PREFIX}/share/ensembl-vep-${VERSION}-*" >> $APPTAINER_ENVIRONMENT
 
-	# removed uneeded modules
-	rm $VEP_SHARE/TissueExpression.pm $VEP_SHARE/ancestral.pm $VEP_SHARE/context.pm $VEP_SHARE/de_novo_donor.pl $VEP_SHARE/extended_splice.pl $VEP_SHARE/gerp_dist.pl $VEP_SHARE/loftee_splice_utils.pl $VEP_SHARE/splice_site_scan.pl $VEP_SHARE/svm.pl $VEP_SHARE/utr_splice.pl 
-
-	# copy loftee to VEP_SHARE and delete directory
-	cp -r loftee/* $VEP_SHARE && rm -rf loftee
 
 	export PERL5LIB=/:$MAMBA_ROOT_PREFIX/share/ensembl-vep/
 	echo "export PERL5LIB=/:${MAMBA_ROOT_PREFIX}/share/ensembl-vep/" >> $APPTAINER_ENVIRONMENT
 
-	export export LOFTEE_PLUGIN_PATH=/:$MAMBA_ROOT_PREFIX/share/ensembl-vep/
-	echo "export LOFTEE_PLUGIN_PATH=/:${MAMBA_ROOT_PREFIX}/share/ensembl-vep/" >> $APPTAINER_ENVIRONMENT
 
 
 	# run vep_install in base
@@ -70,7 +59,6 @@ From: mambaorg/micromamba:latest
 %runscript
 	echo "this is apptainer image for vep ${VERSION}"
 	echo "VEP is installed in ${VEP_SHARE}"
-	echo "LOFTEE plugin path ${LOFTEE_PLUGIN_PATH}"
 
 
 	vep_cmd="micromamba run --prefix $MAMBA_ROOT_PREFIX /bin/bash -c \"$@\""
@@ -96,13 +84,10 @@ From: mambaorg/micromamba:latest
 	e.g., to see VEP installation directory
 		apptainer run -C vep_apptainer "echo \$VEP_SHARE"
 	
-	Bind appropriate host FS with apptainer environment using -B command to read/write files, such as installation of cache
+	Bind to appropriate host FS using -B command to read/write files, such as installation of cache
+
+
 	e.g., install dbNFSP into ~/dir
 		apptainer run -C -B ~/dir:/vep_plugins vep_apptainer "vep_install -a p --PLUGINS dbNFSP --CACHE_VERSION 105 --PLUGINSDIR /tmp"
-	
-	Can bind directory to:
-		/tmp/vep_cache
-		/tmp/vep_plugins
-		/tmp/vep_wdir
-	
+
 
