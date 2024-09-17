@@ -82,7 +82,7 @@ process create_mask_files {
   output:
     // wildcard for study names
     // figure out if it can specify numbers
-    path "*/*_masks.txt" 
+    path "*/${vcf_file_name}_masks.txt" 
     path "4_create_masks.logs", emit: "log"
   
   script:
@@ -101,7 +101,7 @@ process create_annotation_summaries{
     path "4_create_masks.logs"
   
   output:
-    path "5_1_${vcf_file_name}_vep_summaries.json.gz"
+    path "5_1_${vcf_file_name}_vep_summaries.sqlite3.db"
     path "5_1_create_masks.logs",emit: "log"
   
   script:

@@ -2,7 +2,7 @@
 
 """
 
-import shutil,os,sys,yaml,pyreadr,re,json,gzip
+import shutil,os,sys,yaml,pyreadr,re,json,gzip,sqlite3
 import pandas as pd
 import numpy as np
 from collections import namedtuple
@@ -13,38 +13,52 @@ def main():
   print("creating set list file")
   print("*"*20)
   vep_summarie_file = os.path.join(
-    WDIR,f"5_1_{VCF_NAME}_vep_summaries.json.gz"
+    WDIR,f"5_1_{VCF_NAME}_vep_summaries.sqlite3.db"
   )
   assert(
     os.path.isfile(vep_summarie_file)
   ),f"missing summary file"
 
-  with gzip.open(vep_summarie_file,'r') as ptr:
-    vep_summaries = json.load(ptr)
+
+  conn = sqlite3.connect(vep_summarie_file)
+  cur = conn.cursor()
+  genes = cur.execute(
+    """
+    SELECT distinct gene FROM vep_summaries
+    """
+  ).fetchall()
 
   setlist_file = os.path.join(
     WDIR,f"6_{VCF_NAME}.setlist"
   )
   print(f"set list file written to {setlist_file}")
-  with open(setlist_file,'w') as ptr:
-    for gene,vars in vep_summaries.items():
+  with open(setlist_file,'w') as ptr:  
+    for gene in genes:
+      gene = gene[0] # select returns a list of tuples
+      var_var_location = cur.execute(
+        """
+        SELECT distinct SNP,location FROM vep_summaries WHERE gene = :gene
+        """,{"gene":gene}
+      ).fetchall()
       min_position = None
       gene_chr = None
       all_vars = []
-      for var,var_info in vars.items():
+      for var,var_location in var_var_location:
         all_vars.append(var)
-        var_location = var_info['location']
         var_location_info = var_location.split(":")
         assert(
           len(var_location_info) == 2
-        ),f"unknown var notation {var_location}"
+        ),f"unknown SNP location notation {var_location}"
+        
+        # for indels, positions noted as start-end use the first position
         if (re.search("-",var_location_info[1])):
-          var_pos = float(var_location_info[1].split("-")[0])
+          var_pos = int(var_location_info[1].split("-")[0])
         else:  
-          var_pos = float(var_location_info[1])
+          var_pos = int(var_location_info[1])
+
         var_chr = str(re.sub("chr","",var_location_info[0]))
         if min_position == None:
-          min_position == var_pos
+          min_position = var_pos
         else:
           if var_pos < min_position:
             min_position = var_pos
@@ -53,11 +67,11 @@ def main():
         else:
           assert(gene_chr == var_chr),f"different chr for same gene {gene} {var}"
       all_vars_str = ",".join(all_vars)
+      print(f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n")
       ptr.write(
         f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n"
       )
-
-
+  conn.close()
 
   return 
 
@@ -92,7 +106,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/example_homo_sapiens_GRCh38.vcf"
     print("TEST")
 
 

@@ -45,19 +45,19 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     '--no_stats',
     '--fork',"1"
   ]
-  full_cmd = apptainer_cmd + [f"{' '.join(vep_cmd)}"]
 
+  full_cmd = apptainer_cmd + [f"\"{' '.join(vep_cmd)}\""]
   print("VEP annotation apptainer commands:")
   print(" ".join(full_cmd))
   print("*"*20)
 
   apptainer_run = sp.run(
-    full_cmd,
+    " ".join(full_cmd),
     stderr = sp.PIPE,
-    check=True
+    shell=True
   )
-
   print(apptainer_run.stderr.decode('utf-8'))
+  assert(apptainer_run.returncode == 0),f"Error with VEP"
   print("="*20)
 
   return

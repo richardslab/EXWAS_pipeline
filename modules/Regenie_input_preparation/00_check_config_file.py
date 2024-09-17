@@ -40,47 +40,14 @@ def __check_build():
   return
 
 def __check_names_def_consistencies():
-  """checks the that all the categories for mask_names are defined in mask_definitions"""
-
-  assert(
-    len(list(CONFIG.mask_names.keys())) == 
-    len(set(list(CONFIG.mask_names.keys())))
-  ),f"duplicated studies in mask_names of config file"
-  
-  assert(
-    len(list(CONFIG.mask_definitions.keys())) == 
-    len(set(list(CONFIG.mask_definitions.keys())))
-  ),f"duplicated studies in mask_definitions of config file"
-
-
-  # all the mask names
-  all_study_mask_names = {}
-  for study,mask_names in CONFIG.mask_names.items():
-    masks_tmp_list = []
-    for i in list(mask_names.values()):
-      masks_tmp_list += i.split(",")
-      masks_tmp_list = list(set(masks_tmp_list))
-    all_study_mask_names[study] = masks_tmp_list
-
-  # all mask _definitions
-  all_study_mask_def = {}
+  """check annotation definition and order"""
   for study,mask_def in CONFIG.mask_definitions.items():
-    masks_tmp_list = []
-    for i in list(mask_def.keys()):
-      masks_tmp_list += i.split(",")
-      masks_tmp_list = list(set(masks_tmp_list))
-    all_study_mask_def[study] = masks_tmp_list
-  
-  assert(
-    set(all_study_mask_def.keys()) == set(all_study_mask_names.keys())
-  ),f"the studies are different between mask_definitions and mask_names"
-
-  difference_checks = {}
-  for study in all_study_mask_names.keys():
-    difference_checks[study] = set(all_study_mask_names[study]) == set(all_study_mask_def[study])
-  assert(
-    all(list(difference_checks.values()))
-  ),f"mask names and definitions are different for studies: {list(compress(list(difference_checks.keys()),[not x for x in difference_checks.values()]))}"
+    study_annotations = []
+    for annotation_def in mask_def.values():
+      study_annotations += list(annotation_def.keys())
+    study_annotations = list(set(study_annotations))
+    study_order = CONFIG.annotation_order[study]
+    assert(set(study_annotations) == set(study_order)),f"annotation definition issue {study}"
 
   return
 
@@ -97,9 +64,12 @@ def __check_all_plugins_have_orders():
   """Check all plugins have specified orders in config file as required for aggregating annotations
   """
   all_plugins = set()
-  for mask_def in CONFIG.mask_definitions.values():
-    for plugins in mask_def.values():
-      all_plugins.add(list(plugins.keys())[0])
+  for study,mask_def in CONFIG.mask_definitions.items():
+    for mask,annotation_def in mask_def.items():
+      for annotation,annotation_criteria in annotation_def.items():
+        for plugin,plugin_criteria in annotation_criteria[0].items():
+          all_plugins.add(plugin)
+      
   check_results = [a or b for a,b in zip([x in CONFIG.CONST for x in all_plugins],[ x in CONFIG.CONST_NUMERIC for x in all_plugins])]
   check_keys = all_plugins
   no_order_dict = dict(
@@ -113,16 +83,6 @@ def __check_all_plugins_have_orders():
 
   return
 
-def __check_def_have_plugin_orders():
-  """each study defined plugins for generating annotataions. They should all have orders
-  """
-  for study,mask_def in CONFIG.mask_definitions.items():
-    study_plugins = set(mask_def.keys())
-    study_plugin_orders = CONFIG.plugin_orders[study]
-    assert(
-      study_plugins == set(study_plugin_orders)
-    ),f"mask_definitions plugins and plugin orders are different for {study}"
-  return
 
 #%%
 def main():
@@ -131,7 +91,6 @@ def main():
   __check_names_def_consistencies()
   __check_numeric_constant()
   __check_all_plugins_have_orders()
-  __check_def_have_plugin_orders()
 
   print("Configuration file ok")
 

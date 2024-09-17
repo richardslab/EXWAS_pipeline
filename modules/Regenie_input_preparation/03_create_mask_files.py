@@ -27,12 +27,13 @@ def sanity_checks():
   extra_columns = parse_vep_headers.get_vep_plugins(expected_annotation_file)
   print(f"Vep annotation found: {extra_columns}")
   # all plugins used for mask definition exists
-  for study in CONFIG.mask_definitions.keys():
-    study_masks = CONFIG.mask_definitions[study]
-    study_plugins = []
-    for mask_def in study_masks.values():
-      study_plugins += list(mask_def.keys())
-      study_plugins = list(set(study_plugins))
+  for study,study_masks in CONFIG.mask_definitions.items():
+    study_plugins = set()
+    for mask,annotations in study_masks.items():
+      for annotation,annotation_def in annotations.items():
+        for plugin,plugin_criteria in annotation_def[0].items():
+          study_plugins.add(plugin)
+
     plugin_membership = [x in extra_columns for x in study_plugins]
     plugin_missing_val = list(compress(
       study_plugins,[not x for x in plugin_membership]
@@ -52,15 +53,14 @@ def sanity_checks():
 def main():
   sanity_checks()
   # write the mask file for each study
-  for study,mask_names in CONFIG.mask_names.items():
-
+  for study,study_masks in CONFIG.mask_definitions.items():
     study_outdir = os.path.join(WDIR,study)
     os.makedirs(study_outdir,exist_ok=True)
-
-    mask_file = os.path.join(study_outdir,f"{study}_masks.txt")
+    mask_file = os.path.join(study_outdir,f"{VCF_NAME}_masks.txt")
     with open(mask_file,'w') as ptr:
-      for mask_name,mask_def in mask_names.items():
-        ptr.write(f"{mask_name} {mask_def}\n")
+      for mask,mask_def in study_masks.items():
+        mask_def_string = ",".join(list(mask_def.keys()))
+        ptr.write(f"{mask} {mask_def_string}\n")
     print(f"Masks for {study} written to {study_outdir}")
 
 

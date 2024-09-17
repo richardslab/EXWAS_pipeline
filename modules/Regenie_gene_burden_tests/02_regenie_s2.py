@@ -41,7 +41,7 @@ def _run_regenie_s2_each_study(study):
   return
 
 def main():
-  studies = list(CONFIG.mask_names.keys())
+  studies = list(CONFIG.mask_definitions.keys())
   assert(len(list(set(studies))) == len(studies)),"duplicated studies specified"
 
   for each_study in studies:

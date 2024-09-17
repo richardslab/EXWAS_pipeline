@@ -75,6 +75,8 @@ workflow regenie_workflow {
   create_annotation_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
 
   create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+  
+  // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
 }
 
 workflow {
