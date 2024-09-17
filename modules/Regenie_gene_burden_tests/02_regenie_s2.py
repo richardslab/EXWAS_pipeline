@@ -7,13 +7,14 @@ import subprocess as sp
 
 def _run_regenie_s2_each_study(study):
   study_outdir = os.path.join(WDIR,study)
+  assert(os.path.isdir(study_outdir)),f"missing a step for {study_outdir}??"
 
   s2_cmd = [
     CONFIG.regenie,
     "--step","2",
-    "--bfile",f"2_{VCF_NAME}",
-    "--anno-file",f"{VCF_NAME}_annotations.txt"
-    "--mask-def",f"{study}_masks.txt"
+    "--bed",os.path.join(WDIR,f"2_{VCF_NAME}"),
+    "--anno-file",os.path.join(study_outdir,f"{VCF_NAME}_annotations.txt"),
+    "--mask-def",os.path.join(study_outdir,f"{VCF_NAME}_masks.txt"),
     "--set-list",os.path.join(WDIR,f"6_{VCF_NAME}.setlist")
   ]
   for k,v in CONFIG.s2_params.items():
@@ -26,14 +27,14 @@ def _run_regenie_s2_each_study(study):
     else:
       assert False, 'invalid Regenie Step 2 value format issue in config file {k} {v}'    
   s2_cmd += [
-    "--pred",os.path.join(WDIR,"7_{VCF_NAME}_regenie_S1_OUT"),
-    "--out",os.path.join(study_outdir,"8_{VCF_NAME}__regenie_S2_OUT")
+    "--pred",os.path.join(WDIR,f"7_{VCF_NAME}_regenie_S1_OUT_pred.list"),
+    "--out",os.path.join(study_outdir,f"8_{VCF_NAME}_regenie_S2_OUT")
   ]
   print("Regenie S2 command:")
   print(" ".join(s2_cmd))
   print("*"*20)
   s2_out = sp.run(
-    s2_cmd,check=True,stderr=sp.PIPE
+    " ".join(s2_cmd),check=True,shell=True,stderr=sp.PIPE
   )
   print(s2_out.stderr.decode("utf-8"))
   print("="*20)
@@ -104,3 +105,5 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
+
+  main()
