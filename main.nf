@@ -58,7 +58,7 @@ Prepare and run ExWAS gene burden tests from input VCF files
 // Regenie input processing
 include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_annotation_summaries; create_annotation_file; create_setlist_file} from "./modules/Regenie_input_preparation"
 
-include {run_regenie_s1} from "./modules/Regenie_gene_burden_tests"
+include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
 
 workflow regenie_workflow {
 
@@ -77,6 +77,8 @@ workflow regenie_workflow {
   create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
   
   // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
+
+  // run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
 }
 
 workflow {
