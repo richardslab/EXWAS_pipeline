@@ -20,7 +20,8 @@
 *  2. Run regenie burden testing
 */
 
-
+// Uses DSL 2
+nextflow.enable.dsl = 2
 
 def checkRuntimeEnvironment(){
   /**
