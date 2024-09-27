@@ -33,7 +33,7 @@ def checkRuntimeEnvironment(){
   return [python_vrs,conda_prefix]
 }
 def runtimeEnv = checkRuntimeEnvironment()
-assert runtimeEnv[1] == null : "Deactivate conda environment first. Founrd ${runtimeEnv[1]}"
+assert runtimeEnv[1] == null : "Deactivate conda environment first. Found ${runtimeEnv[1]}"
 
 
 
@@ -77,9 +77,9 @@ workflow regenie_workflow {
 
   create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
   
-  // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
+  run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
 
-  // run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
+  run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
 }
 
 workflow {

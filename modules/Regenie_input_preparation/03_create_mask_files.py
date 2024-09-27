@@ -99,6 +99,7 @@ if __name__ == "__main__":
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation"
     print("TEST")
 
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
   VCF_NAME = os.path.basename(cargs.input_vcf)
   WDIR = cargs.wdir
 
-  sys.path.append(CONFIG.Regenie_input_prep_scripts)
+  sys.path.append(os.path.basename(__file__))
   from python_helpers.vep_helpers import parse_vep_headers
   
 
