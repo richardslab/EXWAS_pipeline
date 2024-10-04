@@ -53,7 +53,7 @@ Prepare and run ExWAS gene burden tests from input VCF files
   # pipeline configurations
   conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
   pipeline configuration: ${params.config_file}
-
+==================================================
 """
 
 // Regenie input processing
