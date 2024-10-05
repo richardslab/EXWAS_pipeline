@@ -61,31 +61,38 @@ include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_a
 
 include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
 
+// This workflow runs ExWAS for 1 VCF
+// by using Channel, can run mutliple VCF in parallele (i.e, per chr)
 workflow regenie_workflow {
+  take:
+    input_vcf
 
-  // check_yaml_config(params.config_file,params.input_vcf,params.outdir)  
+  main:
+    // check_yaml_config(params.config_file,input_vcf,params.outdir)  
 
-  align_vcf(params.config_file,params.input_vcf,params.outdir,params.outdir)
-  
-  annotate_vcf(params.config_file,params.input_vcf,params.outdir,align_vcf.out.log)
+    align_vcf(params.config_file,input_vcf,params.outdir,params.outdir)
+    
+    annotate_vcf(params.config_file,input_vcf,params.outdir,align_vcf.out.log)
 
-  // create_mask_files(params.config_file,params.input_vcf,params.outdir,annotate_vcf.out.log)
+    // create_mask_files(params.config_file,input_vcf,params.outdir,annotate_vcf.out.log)
 
-  // create_annotation_summaries(params.config_file,params.input_vcf,params.outdir,create_mask_files.out.log)
+    // create_annotation_summaries(params.config_file,input_vcf,params.outdir,create_mask_files.out.log)
 
-  // create_annotation_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+    // create_annotation_file(params.config_file,input_vcf,params.outdir,create_annotation_summaries.out.log)
 
-  // create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
-  
-  // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
+    // create_annotation_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
 
-  // run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
+    // create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+    
+    // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
+
+    // run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
+
 }
 
 workflow {
-  regenie_workflow()
+  Channel.fromPath(params.input_vcf) | regenie_workflow | view { it }   
 }
-
 
 
 workflow.onComplete {
