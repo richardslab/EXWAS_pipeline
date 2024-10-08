@@ -38,7 +38,6 @@ assert runtimeEnv[1] == null : "Deactivate conda environment first. Found ${runt
 
 
 
-
 log.info """
               Regenie ExWAS pipeline
 ==================================================
@@ -68,9 +67,9 @@ workflow regenie_workflow {
     input_vcf
 
   main:
-    // check_yaml_config(params.config_file,input_vcf,params.outdir)  
+    check_yaml_config(params.config_file,input_vcf,params.outdir)  
 
-    align_vcf(params.config_file,input_vcf,params.outdir,params.outdir)
+    align_vcf(params.config_file,input_vcf,params.outdir,check_yaml_config.out.log)
     
     annotate_vcf(params.config_file,input_vcf,params.outdir,align_vcf.out.log)
 
@@ -91,7 +90,7 @@ workflow regenie_workflow {
 }
 
 workflow {
-  Channel.fromPath(params.input_vcf) | regenie_workflow | view { it }   
+  Channel.fromPath(params.input_vcf) | regenie_workflow
 }
 
 

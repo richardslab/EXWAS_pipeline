@@ -19,9 +19,7 @@ def __check_path_exists():
     "plink" : os.path.isfile(CONFIG.plink),
     "plink2" : os.path.isfile(CONFIG.plink2),
     "vep_docker": os.path.isfile(CONFIG.vep_docker_image),
-    "Regenie_input_prep_scripts": os.path.isdir(CONFIG.Regenie_input_prep_scripts),
-    "wdir": os.path.isdir(WDIR),
-    "helper_dir": os.path.isdir(os.path.join(CONFIG.Regenie_input_prep_scripts,"python_helpers"))
+    "wdir": os.path.isdir(WDIR)
   }
   assert(
     all(list(path_existence.values()))
@@ -86,6 +84,7 @@ def __check_all_plugins_have_orders():
 
 #%%
 def main():
+  assert(False)
   __check_path_exists()
   __check_build()
   __check_names_def_consistencies()
