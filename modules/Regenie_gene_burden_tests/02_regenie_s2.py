@@ -12,7 +12,6 @@ def _run_regenie_s2_each_study(study):
   s2_cmd = [
     CONFIG.regenie,
     "--step","2",
-    "--bed",os.path.join(WDIR,f"2_{VCF_NAME}"),
     "--anno-file",os.path.join(study_outdir,f"{VCF_NAME}_annotations.txt"),
     "--mask-def",os.path.join(study_outdir,f"{VCF_NAME}_masks.txt"),
     "--set-list",os.path.join(WDIR,f"6_{VCF_NAME}.setlist")
