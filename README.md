@@ -28,7 +28,8 @@ Making conda environment on first run will take some time. As long as the conda 
         * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the character in the '*' position
         * e.g., if annotation file has name: **Sites_only_allchr.vcf** and the regenie input is **Another_file_allchr.bgen**, then it will generate only 1 annotation file and assumes it matches to **Another_file_allchr.bgen**
         * the wildcard character can stand-in for 1 or more alphanumeric symbols.
-    * Regenie input ExWAS file is passed directly to Regenie, so specify as it should based on [Regenie documentation](https://rgcgithub.github.io/regenie/options/) (e.g., pgen/bfile have no extensions)
+  * For nextflow_template.config and proj_config_template.yml:
+    * Any parameters passed to Regenie (i.e., step2_exwas_genetic in nextflow_template.config and anything in s1_params and s2_params from the proj_config_template.yml) will be passed directly to Regenie so have to be what it expects absed on [Regenie documentation](https://rgcgithub.github.io/regenie/options/) (e.g., pgen/bfile have no extensions)
 
 ## Configuration files
   * exwas_pipeline.yml: conda environment file to execute the python scripts
