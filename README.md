@@ -18,13 +18,20 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
     
 
 ## Pipeline notes:
+### General
+  * Making conda environment on first run will take some time. As long as the conda cache is not deleted, the environment will not be made again.
+### Annotation
   * VCF for generating annotation files are specified separately from the input to run Regenie. 
       * This way, sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run.
       * As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc) (I think...)
     * If VCF contains genetic data, a sites-only VCF file will be created by the --drop-genotypes flag in bcftools. If the VCF is a sites-only VCF file, then this flag will simply not have any effect (I think...)
+  * Using VEP
+    * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep install.
+    * Have to download everything, then specify these location so the proper directory will used when running the singularity image.
+### ExWAS with Regenie
   * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
   * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
-  * Making conda environment on first run will take some time. As long as the conda cache is not deleted, the environment will not be made again.
+  
 
 ## Usage notes
   * Specified within nextflow_template.config:
