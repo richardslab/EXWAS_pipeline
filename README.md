@@ -21,6 +21,7 @@ Making conda environment on first run will take some time. As long as the conda 
     * Annotation files generated from VCF files will be matched by wildcard character if specified or assumes a 1-1 matching
         * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the character in the '*' position
         * e.g., if annotation file has name: **Sites_only_allchr.vcf** and the regenie input is **Another_file_allchr.bgen**, then it will assume only 1 annotation file is generated and it matches
+        * the wildcard character can stand-in for 1 or more alphanumeric symbols.
 
 ## Configuration files
   * exwas_pipeline.yml: conda environment file to execute the python scripts
