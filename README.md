@@ -8,11 +8,14 @@
 ```
 nextflow run <path>/main.nf -c <path>/nextflow_template.config -profile conda
 ```
+  * Nextflow creates caches for runs and stuff, so doing this will store it in the default location.
+    
 OR edit run_nextflow_template.sh with proper in/out directories for nextflow. then run
 ```
 <path>/run_nextflow_template.sh
 ```
-Making conda environment on first run will take some time. As long as the conda cache dir is not deleted, the environment will not be made again.
+  * There are paths where you can specify where Nextflow cache should be so you can keep track.
+    
 
 ## Pipeline notes:
   * VCF for generating annotation files are specified separately from the input to run Regenie. 
@@ -21,6 +24,7 @@ Making conda environment on first run will take some time. As long as the conda 
     * If VCF contains genetic data, a sites-only VCF file will be created by the --drop-genotypes flag in bcftools. If the VCF is a sites-only VCF file, then this flag will simply not have any effect (I think...)
   * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
   * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
+  * Making conda environment on first run will take some time. As long as the conda cache is not deleted, the environment will not be made again.
 
 ## Usage notes
   * Specified within nextflow_template.config:
