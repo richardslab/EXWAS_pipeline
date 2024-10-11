@@ -17,7 +17,7 @@ Making conda environment on first run will take some time. As long as the conda 
 ## Pipeline notes:
   * VCF for generating annotation files are specified separately from the input to run Regenie. 
       * This way, sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run.
-      * As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc)
+      * As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc) (I think...)
     * If VCF contains genetic data, a sites-only VCF file will be created by the --drop-genotypes flag in bcftools. If the VCF tool doesn't have genetic data, this flag will simply not have any effect (I think...)
   * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
   * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
