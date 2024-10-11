@@ -15,7 +15,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 Making conda environment on first run will take some time. As long as the conda cache dir is not deleted, the environment will not be made again.
 
 ## Pipeline notes:
-  * A sites-only VCF file will be created for all VCF specified by the *annotation_vcf* in the nextflow_template.config
+  * A sites-only VCF file will be created for all VCF specified by the *annotation_vcf* in the nextflow_template.config, but can also take in a sites-only VCF file. The same Bcftool commands will be used.
   * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
   * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
 
