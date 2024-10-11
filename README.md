@@ -16,7 +16,7 @@ Making conda environment on first run will take some time. As long as the conda 
 
 ## Usage notes
   * Specified within nextflow_template.config:
-    * VCF for generating annotation files are specified separately from the input to run Regenie. Sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run
+    * VCF for generating annotation files are specified separately from the input to run Regenie. Sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run. As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc)
       * if these VCF files have genetic data, a sites only vcf file will be created in any case using bcftools
     * Annotation files generated from VCF files will be matched by wildcard character if specified or assumes a 1-1 matching
         * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the character in the '*' position
