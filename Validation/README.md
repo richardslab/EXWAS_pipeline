@@ -6,5 +6,5 @@ input data:
   Phenotype data: /project/richards/guillaume.butler-laporte/protein_gwas/prot_pheno.tsv.gz
 
 Steps:
-  1. convert pgen,psam,pvar files to sites only vcf files
-  2. run nextflow pipelines with vcf files as inputs
+  1. convert pgen,psam,pvar files to sites only vcf files (*01_convert_file_format.py*)
+  2. run nextflow pipelines with vcf files as inputs (have to make this...)
