@@ -9,6 +9,8 @@ def _run_regenie_s2_each_study(study):
   study_outdir = os.path.join(WDIR,study)
   assert(os.path.isdir(study_outdir)),f"missing a step for {study_outdir}??"
 
+  
+
   s2_cmd = [
     CONFIG.regenie,
     "--step","2",

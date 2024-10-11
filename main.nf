@@ -24,9 +24,9 @@
 nextflow.enable.dsl = 2
 
 def checkRuntimeEnvironment(){
-  /**
-  * Check the runtime environment for nextflow before any process
-  * 1. It should not have any conda environment activated because it messes up the paths
+  /*
+   Check the runtime environment for nextflow before any process
+   1. It should not have any conda environment activated because it messes up the paths
   */
   python_vrs = "which python".execute().text
   conda_prefix = System.getenv("CONDA_PREFIX")
@@ -35,7 +35,22 @@ def checkRuntimeEnvironment(){
 def runtimeEnv = checkRuntimeEnvironment()
 assert runtimeEnv[1] == null : "Deactivate conda environment first. Found ${runtimeEnv[1]}"
 
-
+def check_input_exwas_files(){
+  /*
+    Determine if the wild card character is present in the input files
+  */
+  pattern = /\*/
+  vcf_wildcard = params.annotation_vcf =~ pattern
+  exwas_wildcard = params.exwas_genetic =~ pattern
+  return [vcf_wildcard,exwas_wildcard]
+}
+def wildcard_found = check_input_exwas_files()
+assert (wildcard_found[0] && wildcard_found[1]) || (! wildcard_found[0] && ! wildcard_found[1]) : "Wildcard notation not consistent between input VCF and ExWAS VCF"
+if (wildcard_found[0] && wildcard_found[1]){
+  log_str = "Will match annotation VCF with ExWAS input file based on wild card location"
+}else{
+  log_str = "Assumes 1-1 matchign between VCF and ExWAS input"
+}
 
 
 log.info """
@@ -44,8 +59,10 @@ log.info """
 Prepare and run ExWAS gene burden tests from input VCF files
 
   # input data
-  Input vcf file: ${params.input_vcf}
-
+  Input vcf file for generating annotations: ${params.annotation_vcf}
+  File for ExWAS: ${params.exwas_genetic}
+    ExWAS file type: ${params.exwas_genetic_file_type}
+    ${log_str}
   # output data
   output directory: ${params.outdir}
 
@@ -60,37 +77,68 @@ include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_a
 
 include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
 
+process test {
+  /*
+    Simple process to just echo what it got
+  */
+  input:
+    path x
+    
+  output:
+    val x
+
+  script:
+  """
+  echo ${x}
+  """
+}
+
 // This workflow runs ExWAS for 1 VCF
 // by using Channel, can run mutliple VCF in parallele (i.e, per chr)
-workflow regenie_workflow {
+workflow annotation_workflow {
   take:
-    input_vcf
+    input_tuple
 
   main:
-    check_yaml_config(params.config_file,input_vcf,params.outdir)  
+    check_yaml_config(input_tuple,params.config_file,params.outdir)  
 
-    align_vcf(params.config_file,input_vcf,params.outdir,check_yaml_config.out.log)
+    align_vcf(input_tuple,params.config_file,params.outdir,check_yaml_config.out.log)
     
-    annotate_vcf(params.config_file,input_vcf,params.outdir,align_vcf.out.log)
+    // annotate_vcf(params.config_file,annotation_vcf,params.outdir,align_vcf.out.log)
 
-    // create_mask_files(params.config_file,input_vcf,params.outdir,annotate_vcf.out.log)
+    // create_mask_files(params.config_file,annotation_vcf,params.outdir,annotate_vcf.out.log)
 
-    // create_annotation_summaries(params.config_file,input_vcf,params.outdir,create_mask_files.out.log)
+    // create_annotation_summaries(params.config_file,annotation_vcf,params.outdir,create_mask_files.out.log)
 
-    // create_annotation_file(params.config_file,input_vcf,params.outdir,create_annotation_summaries.out.log)
+    // create_annotation_file(params.config_file,annotation_vcf,params.outdir,create_annotation_summaries.out.log)
 
-    // create_annotation_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
+    // create_annotation_file(params.config_file,params.annotation_vcf,params.outdir,create_annotation_summaries.out.log)
 
-    // create_setlist_file(params.config_file,params.input_vcf,params.outdir,create_annotation_summaries.out.log)
-    
-    // run_regenie_s1(params.config_file,params.input_vcf,params.outdir,create_setlist_file.out.log)
+    // create_setlist_file(params.config_file,params.annotation_vcf,params.outdir,create_annotation_summaries.out.log)
+}
+workflow regenie_workflow {
+  take:
+    regenie_input
 
-    // run_regenie_s2(params.config_file,params.input_vcf,params.outdir,run_regenie_s1.out.log)
+  main:
+    run_regenie_s1(params.config_file,params.outdir,regenie_input)
 
+    run_regenie_s2(params.config_file,params.annotation_vcf,params.outdir,params.step2_exwas_genetic_file_type,run_regenie_s1.out.log)
 }
 
 workflow {
-  Channel.fromPath(params.input_vcf) | regenie_workflow
+  // Generate annotations
+  Channel.fromPath(params.annotation_vcf).map{
+    file -> [file,"${file.baseName}"]
+  }.set{ annotation_inputs }
+  annotation_workflow(annotation_inputs)
+
+  // Run Regenie
+  Channel.fromPath(params.step2_exwas_genetic).map{
+    file -> [file,"${file.baseName}"]
+  }.set{ regenie_input }
+  regenie_workflow(regenie_input)
+  
 }
 
 

@@ -84,7 +84,6 @@ def __check_all_plugins_have_orders():
 
 #%%
 def main():
-  assert(False)
   __check_path_exists()
   __check_build()
   __check_names_def_consistencies()

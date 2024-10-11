@@ -7,6 +7,7 @@ import numpy as np
 from collections import namedtuple
 import subprocess as sp
 import argparse
+from pathlib import Path
 
 
 def normalize_vcf(vcf_outfile):
@@ -122,7 +123,7 @@ def generate_plink_files(vcf_outfile,plink_output):
   return
 
 def main():
-  vcf_outfile = os.path.join(WDIR,f'2_{VCF_NAME}_bcftool_variant_only.set_ids.no_genotypes.vcf.gz')
+  vcf_outfile = os.path.join(WDIR,f'2_bcftool_sitesonly_{VCF_NAME}.vcf.gz')
   normalize_vcf(vcf_outfile)
 
   return
@@ -159,7 +160,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr18_sitesonly.vcf"
     print("TEST")
 
 
@@ -178,7 +179,7 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-  VCF_NAME = os.path.basename(cargs.input_vcf)
+  VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
 
   main()

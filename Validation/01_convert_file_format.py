@@ -15,6 +15,7 @@ def convert_to_sites_only(all_pgen_files):
       PLINK,
       '--pfile',each_f,
       '--make-just-pvar',"cols=xheader,vcfheader,qual,filter,info",
+      '--output-chr','chrM',
       '--out',
       os.path.join(OUTDIR,f"{os.path.basename(each_f)}_sitesonly.vcf")
     ]

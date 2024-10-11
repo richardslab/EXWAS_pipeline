@@ -17,7 +17,7 @@ def main():
     elif v != "":
       s1_cmd += [f"{k} {v}"]
     else:
-      assert False, 'invalid Regenie step 1value format issue in config file {k} {v}'
+      assert False, 'invalid Regenie step 1 value format issue in config file {k} {v}'
   s1_cmd += [
     "--out",os.path.join(WDIR,f"7_{VCF_NAME}_regenie_S1_OUT")
   ]
