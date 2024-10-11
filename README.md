@@ -14,6 +14,11 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 ```
 Making conda environment on first run will take some time. As long as the conda cache dir is not deleted, the environment will not be made again.
 
+## Pipeline notes:
+  * A sites-only VCF file will be created for all VCF specified by the *annotation_vcf* in the nextflow_template.config
+  * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
+  * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
+
 ## Usage notes
   * Specified within nextflow_template.config:
     * VCF for generating annotation files are specified separately from the input to run Regenie. Sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run. As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc)
