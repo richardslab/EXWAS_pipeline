@@ -2,9 +2,8 @@
 
 ## running it (for now)
 1. put the conda environment file (exwas_pipeline.yml) in this directory at the same level as README.md
-     * will be provided probably once it is done
-3. Fill in nextflow_template.config and proj_config_template.yml
-4. run:
+2. Fill in nextflow_template.config and proj_config_template.yml
+3. run:
 ```
 nextflow run <path>/main.nf -c <path>/nextflow_template.config -profile conda
 ```
@@ -72,4 +71,5 @@ Figure out how to put the conda environment in a docker/singularity and run with
 
 Can add LDSC as a workflow
   * Provided the user download all the files and give all the flag, should be pretty easy.
-          
+
+Put the config files (filled in version) here?
