@@ -15,14 +15,15 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 Making conda environment on first run will take some time. As long as the conda cache dir is not deleted, the environment will not be made again.
 
 ## Pipeline notes:
-  * A sites-only VCF file will be created for all VCF specified by the *annotation_vcf* in the nextflow_template.config, but can also take in a sites-only VCF file. The same Bcftool commands will be used.
+  * VCF for generating annotation files are specified separately from the input to run Regenie. 
+      * This way, sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run.
+      * As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc)
+    * If VCF contains genetic data, a sites-only VCF file will be created by the --drop-genotypes flag in bcftools. If the VCF tool doesn't have genetic data, this flag will simply not have any effect
   * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
   * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
 
 ## Usage notes
   * Specified within nextflow_template.config:
-    * VCF for generating annotation files are specified separately from the input to run Regenie. Sites-only VCF files can be used to generate annotation, as it is smaller file size and faster to run. As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc)
-      * if these VCF files have genetic data, a sites only vcf file will be created in any case using bcftools
     * Annotation files generated from VCF files will be matched by wildcard character if specified or assumes a 1-1 matching
         * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the character in the '*' position
         * e.g., if annotation file has name: **Sites_only_allchr.vcf** and the regenie input is **Another_file_allchr.bgen**, then it will generate only 1 annotation file and assumes it matches to **Another_file_allchr.bgen**
