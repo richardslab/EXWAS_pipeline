@@ -66,8 +66,10 @@ Parameters are specified in 2 files right now.
     * e.g., a "Regeneron" and "Genomics England" ExWAS can be specified in there, but will just do one after another
     * Perhaps specify this in the nextflow_template.config so each study is done in parallel?
       * e.g., input: Regeneron chr1, ... Regeneron chr23, Genomics England chr1,...Genomics England chr23 and run these in parallel?
+
 Figure out how to put the conda environment in a docker/singularity and run with those image.
   * how to run one container (the vep container) inside another container (the workflow container)????
+
 Can add LDSC as a workflow
   * Provided the user download all the files and give all the flag, should be pretty easy.
           
