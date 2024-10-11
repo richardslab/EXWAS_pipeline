@@ -64,9 +64,9 @@ Parameters are specified in 2 files right now.
 Generating sites only VCF hangs on some chromosomes, but like its fine if it is separate...????
 
 Different 'study' with different masks and annotations are specified in proj_config_template.yml so will be done sequentially.
-    * e.g., a "Regeneron" and "Genomics England" ExWAS can be specified in there, but will just do one after another
-    * Perhaps specify this in the nextflow_template.config so each study is done in parallel?
-      * e.g., input: Regeneron chr1, ... Regeneron chr23, Genomics England chr1,...Genomics England chr23 and run these in parallel?
+* e.g., a "Regeneron" and "Genomics England" ExWAS can be specified in there, but will just do one after another
+  * Perhaps specify this in the nextflow_template.config so each study is done in parallel?
+  * e.g., input: Regeneron chr1, ... Regeneron chr23, Genomics England chr1,...Genomics England chr23 and run these in parallel?
 
 Figure out how to put the conda environment in a docker/singularity and run with those image.
   * how to run one container (the vep container) inside another container (the workflow container)????
