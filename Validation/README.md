@@ -1,9 +1,9 @@
 This is the attempt to prepare UKB data to replicate ExWAS results
 
 input data:
-  Genetic data: /scratch/richards/guillaume.butler-laporte/ukb_covid/wes_qc_chr/*.{pgen,psam,pvar}
-  Covariates data: /project/richards/guillaume.butler-laporte/protein_gwas/covar_rare_proteins.tsv.gz
-  Phenotype data: /project/richards/guillaume.butler-laporte/protein_gwas/prot_pheno.tsv.gz
+* Genetic data: /scratch/richards/guillaume.butler-laporte/ukb_covid/wes_qc_chr/*.{pgen,psam,pvar}
+* Covariates data: /project/richards/guillaume.butler-laporte/protein_gwas/covar_rare_proteins.tsv.gz
+* Phenotype data: /project/richards/guillaume.butler-laporte/protein_gwas/prot_pheno.tsv.gz
 
 Steps:
   1. convert pgen,psam,pvar files to sites only vcf files (*01_convert_file_format.py*)
