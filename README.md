@@ -39,3 +39,16 @@ Making conda environment on first run will take some time. As long as the conda 
   * nextflow >= 23.10.0
   * python 3.10.9
   * Other required programs (plink, tabix, etc) are listed in proj_config_template.yml
+
+## stuff to figure out...
+Parameters are specified in 2 files right now.
+  * nextflow_template.config:
+    * specifies how to run nextflow in conda environment without conda, and potentially with docker, etc
+    * specifies the location of the vcf files for annotation and ExWAS.
+      * speficied here because using the wildcard, nextflow will pass each vcf through the pipeline in parallel (e.g., we can annotate vcf of each chr in parallel or run Regenie for each chr in parallel)
+  * proj_config_template.yml:
+    * specifies all other parameters to run the scripts.
+      * specified here because there are certain parameters that the script expects to be like a dictionary or list, etc. Cannot be done (or not sure how to get it done) using the commandline argument.
+      * Right now, it reads this yml file will store to get those data structures
+  * Generating sites only VCF takes hangs on some chromosomes...????
+          
