@@ -22,7 +22,7 @@ Making conda environment on first run will take some time. As long as the conda 
         * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the character in the '*' position
         * e.g., if annotation file has name: **Sites_only_allchr.vcf** and the regenie input is **Another_file_allchr.bgen**, then it will assume only 1 annotation file is generated and it matches
 
-## Required files (examples in config_templates):
+## Configuration files
   * exwas_pipeline.yml: conda environment file to execute the python scripts
   * nextflow_template.config: nextflow configuration
   * proj_config_template.yml: ExWAS configuration yaml files:
