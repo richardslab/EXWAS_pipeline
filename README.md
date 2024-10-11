@@ -75,3 +75,5 @@ Can add LDSC as a workflow
   * Provided the user download all the files and give all the flag, should be pretty easy.
 
 Put the config files (filled in version) here?
+
+Find some small public example data to test installation and stuff and write test cases.
