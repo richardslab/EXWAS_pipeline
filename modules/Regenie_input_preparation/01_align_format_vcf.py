@@ -17,64 +17,73 @@ def normalize_vcf(vcf_outfile):
       vcf_outfile (str): input vcf file
   """
   # commands to align, change the SNP IDs and remove sample info
+  bcftool_var_only_file_cmd = [
+    CONFIG.bcftools,
+    'view','--drop-genotypes',
+    '-Ou',cargs.input_vcf
+  ]
   bcftool_align_cmd = [
     CONFIG.bcftools,
     'norm','-m','-any','--check-ref','w','-f',
     CONFIG.reference_fasta,
-    cargs.input_vcf,
-    '-O','u'
+     '-Ou'
   ]
   bcftool_annotate_cmd = [
     CONFIG.bcftools,
     'annotate',
     '--set-id','%CHROM:%POS:%REF:%FIRST_ALT',
-    '-O','u'
-  ]
-  bcftool_var_only_file_cmd = [
-    CONFIG.bcftools,
-    'view','--drop-genotypes','-O','z','-o',vcf_outfile
+    '-Oz','-o',vcf_outfile
   ]
   # print the equivalent bash command to log
   print("Alignment Command: ")
   print(
-    f"{' '.join(bcftool_align_cmd)} | {' '.join(bcftool_annotate_cmd)} | {' '.join(bcftool_var_only_file_cmd)}"
+    f"{' '.join(bcftool_var_only_file_cmd)} | {' '.join(bcftool_align_cmd)} | {' '.join(bcftool_annotate_cmd)}"
   )
   print("*"*20)
+
   # run the commands and create the file
+  bcftool_gen_var_only = sp.Popen(
+    bcftool_var_only_file_cmd,
+    stderr = sp.PIPE,
+    stdout = sp.PIPE
+  )
+  
   bcftool_align = sp.Popen(
       bcftool_align_cmd,
       stdout = sp.PIPE,
       stderr = sp.PIPE,
-      universal_newlines=True
+      stdin=bcftool_gen_var_only.stdout
     )
+
   bcftool_annotate = sp.Popen(
     bcftool_annotate_cmd,
     stdin = bcftool_align.stdout,
     stdout = sp.PIPE,
-    stderr=sp.PIPE,
-    universal_newlines=True
+    stderr = sp.PIPE
   )
-  bcftool_gen_var_only = sp.run(
-    bcftool_var_only_file_cmd,
-    stdin = bcftool_annotate.stdout,
-    stderr = sp.PIPE,
-    check=True
-  )
-  # when each process finishes, sends signal indicate it is done
-  # we don't need the stdout, just the error
+
+
+  bcftool_gen_var_only.stdout.close()
   bcftool_align.stdout.close()
-  bcftool_annotate.stdout.close()
-  # wait for all processes to finish and check exit status
-  bcftool_align_res = bcftool_align.communicate()
-  bcftool_annotate_res = bcftool_annotate.communicate()
+  
+  print(bcftool_gen_var_only.stderr.readlines())
+  print(bcftool_align.stderr.readlines())
+  print(bcftool_annotate.stderr.readlines())
+
+  bcftool_gen_var_only.poll()
+  bcftool_align.poll()
+  bcftool_annotate.poll()
+
+  bcftool_gen_var_only.wait()
+  bcftool_align.wait()
+  bcftool_annotate.wait()
+
   assert(
+    bcftool_gen_var_only.returncode == 0 and
     bcftool_align.returncode == 0 and
-    bcftool_annotate.returncode == 0 and
-    bcftool_gen_var_only.returncode == 0
+    bcftool_annotate.returncode == 0
   ),'issue with generating vcf'
-  print(bcftool_align_res[1])
-  print(bcftool_annotate_res[1])
-  print(bcftool_gen_var_only.stderr.decode('utf-8'))
+  
   print("="*20)
 
   # index the vcf file with tabix
@@ -159,8 +168,8 @@ if __name__ == "__main__":
     import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr18_sitesonly.vcf"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr1_sitesonly.vcf"
     print("TEST")
 
 
