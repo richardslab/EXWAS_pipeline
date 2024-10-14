@@ -104,7 +104,7 @@ workflow annotation_workflow {
 
     align_vcf(input_tuple,params.config_file,params.outdir,check_yaml_config.out.log)
     
-    // annotate_vcf(params.config_file,annotation_vcf,params.outdir,align_vcf.out.log)
+    annotate_vcf(input_tuple,params.config_file,params.outdir,align_vcf.out.log)
 
     // create_mask_files(params.config_file,annotation_vcf,params.outdir,annotate_vcf.out.log)
 

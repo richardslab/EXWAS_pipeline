@@ -52,19 +52,18 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
   print("*"*20)
 
   apptainer_run = sp.run(
-    " ".join(full_cmd),
-    stderr = sp.PIPE,
-    shell=True
+    apptainer_cmd + [' '.join(vep_cmd)],
+    stderr = sys.stderr,
+    check=True
   )
-  print(apptainer_run.stderr.decode('utf-8'))
   assert(apptainer_run.returncode == 0),f"Error with VEP"
   print("="*20)
-
+  
   return
 
 def main():
-  vcf_infile = f'2_{VCF_NAME}_bcftool_variant_only.set_ids.no_genotypes.vcf.gz'
-  vcf_anno_out=f'3_{VCF_NAME}_vcf_final_annotation.txt'
+  vcf_infile = f'2_bcftool_sitesonly_{VCF_NAME}.vcf.gz'
+  vcf_anno_out=f'3_annotation_results_{VCF_NAME}.txt'
   
   annotate_vcf(vcf_infile,vcf_anno_out)
 
@@ -102,7 +101,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr16_sitesonly.vcf"
     print("TEST")
 
   with open(cargs.cfile,'r') as ptr:
