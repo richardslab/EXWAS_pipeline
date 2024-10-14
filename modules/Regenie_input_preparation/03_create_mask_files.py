@@ -8,6 +8,7 @@ import numpy as np
 from collections import namedtuple
 import argparse
 from itertools import compress
+from pathlib import Path
 
 def sanity_checks():
   """Make sure we have all the inputs we need and the setup is correct so far.

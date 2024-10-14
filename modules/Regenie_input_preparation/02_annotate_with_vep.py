@@ -7,7 +7,7 @@ import numpy as np
 from collections import namedtuple
 import subprocess as sp
 import argparse
-
+from pathlib import Path
 
 def annotate_vcf(vcf_infile,vcf_anno_out):
   # binds the cache directory

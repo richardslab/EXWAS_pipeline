@@ -4,7 +4,7 @@ Check the variables specified in the config file to make sure it has what it nee
 import yaml,os,shutil,sys,argparse
 from collections import namedtuple
 from itertools import compress
-
+from pathlib import Path
 
 
 #%% General
