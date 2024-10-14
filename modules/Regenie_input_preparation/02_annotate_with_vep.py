@@ -109,7 +109,7 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
 
-  VCF_NAME = os.path.basename(cargs.input_vcf)
+  VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'

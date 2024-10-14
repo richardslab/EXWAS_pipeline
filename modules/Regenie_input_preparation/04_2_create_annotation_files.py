@@ -179,7 +179,7 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
 
-  VCF_NAME = os.path.basename(cargs.input_vcf)
+  VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
 
   print("Creating annotation file")

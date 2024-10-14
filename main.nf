@@ -127,10 +127,11 @@ workflow regenie_workflow {
 }
 
 workflow {
-  // Generate annotations
+  // Generate annotations, which will be input file path, base name tuples
   Channel.fromPath(params.annotation_vcf).map{
     file -> [file,"${file.baseName}"]
   }.set{ annotation_inputs }
+
   annotation_workflow(annotation_inputs)
 
   // // Run Regenie

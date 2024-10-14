@@ -234,7 +234,7 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-  VCF_NAME = os.path.basename(cargs.input_vcf)
+  VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
   CONSTANT = CONFIG.CONST
   CONST_NUMERIC = CONFIG.CONST_NUMERIC
