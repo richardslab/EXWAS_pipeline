@@ -41,7 +41,7 @@ def check_input_exwas_files(){
   */
   pattern = /\*/
   vcf_wildcard = params.annotation_vcf =~ pattern
-  exwas_wildcard = params.exwas_genetic =~ pattern
+  exwas_wildcard = params.step2_exwas_genetic =~ pattern
   return [vcf_wildcard,exwas_wildcard]
 }
 def wildcard_found = check_input_exwas_files()
@@ -133,11 +133,11 @@ workflow {
   }.set{ annotation_inputs }
   annotation_workflow(annotation_inputs)
 
-  // Run Regenie
-  Channel.fromPath(params.step2_exwas_genetic).map{
-    file -> [file,"${file.baseName}"]
-  }.set{ regenie_input }
-  regenie_workflow(regenie_input)
+  // // Run Regenie
+  // Channel.fromPath(params.step2_exwas_genetic).map{
+  //   file -> [file,"${file.baseName}"]
+  // }.set{ regenie_input }
+  // regenie_workflow(regenie_input)
   
 }
 

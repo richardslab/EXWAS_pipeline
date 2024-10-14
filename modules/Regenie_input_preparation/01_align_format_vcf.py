@@ -20,7 +20,8 @@ def normalize_vcf(vcf_outfile):
   bcftool_var_only_file_cmd = [
     CONFIG.bcftools,
     'view','--drop-genotypes',
-    '-Ou',cargs.input_vcf
+    cargs.input_vcf,
+    '-Ou'
   ]
   bcftool_align_cmd = [
     CONFIG.bcftools,
@@ -42,38 +43,32 @@ def normalize_vcf(vcf_outfile):
   print("*"*20)
 
   # run the commands and create the file
+  # notes here, I am redirecting stderr directly to terminal because I need to coonsume the bufffer straight. Otherwise, if any fills up, then it deadlocks.
+  # the output streams are always consumed asap asa it is piped to a different commands and the last command the stdout is not captured
+
   bcftool_gen_var_only = sp.Popen(
     bcftool_var_only_file_cmd,
-    stderr = sp.PIPE,
+    stderr = sys.stderr,
     stdout = sp.PIPE
   )
-  
   bcftool_align = sp.Popen(
       bcftool_align_cmd,
+      stdin=bcftool_gen_var_only.stdout,
       stdout = sp.PIPE,
-      stderr = sp.PIPE,
-      stdin=bcftool_gen_var_only.stdout
+      stderr = sys.stderr
     )
-
+  # the are no outputs for this last step so not captured
   bcftool_annotate = sp.Popen(
     bcftool_annotate_cmd,
     stdin = bcftool_align.stdout,
-    stdout = sp.PIPE,
-    stderr = sp.PIPE
+    stderr = sys.stderr
   )
-
-
+  # this means if bctool align is killed, then bcftool_gen_var_only knows no one is reading and will also killed
+  # likewise for subsequent
   bcftool_gen_var_only.stdout.close()
   bcftool_align.stdout.close()
-  
-  print(bcftool_gen_var_only.stderr.readlines())
-  print(bcftool_align.stderr.readlines())
-  print(bcftool_annotate.stderr.readlines())
 
-  bcftool_gen_var_only.poll()
-  bcftool_align.poll()
-  bcftool_annotate.poll()
-
+  # wait for all commands to finish before checking return code
   bcftool_gen_var_only.wait()
   bcftool_align.wait()
   bcftool_annotate.wait()
@@ -102,33 +97,6 @@ def normalize_vcf(vcf_outfile):
   print(tabix_run.stderr.decode("utf-8"))
   print("="*20)
   
-  return
-
-def generate_plink_files(vcf_outfile,plink_output):
-  """Convert the vcf files into plink files
-
-  Args:
-      vcf_outfile (str): VCF file path 
-      plink_output (str): plink output file paths
-  """
-  plink_cmd = [
-    CONFIG.plink,
-    '--vcf','--double-id',
-    vcf_outfile,'--make-bed','--out',plink_output
-  ]
-  plink_prune_cmd = [
-    CONFIG.plink,
-    '--bfile',plink_output,
-    '--hwe','1E-15 midp',
-    '--maf','0.01','--geno','0.1',
-    '--indep-pairwise','50 5 0.5',
-    '--out','pruned_variants.txt'
-  ]
-  sp.run(
-    plink_cmd,check=True
-  )
-  sp.run(plink_prune_cmd,check=True)
-
   return
 
 def main():
