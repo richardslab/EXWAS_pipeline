@@ -26,7 +26,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
     * If VCF contains genetic data, a sites-only VCF file will be created by the --drop-genotypes flag in bcftools. If the VCF is a sites-only VCF file, then this flag will simply not have any effect (I think...)
   * Using VEP
     * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep installed.
-     * Have to download everything, then specify these location in *proj_config_template.yml*
+      * Have to download everything, then specify these location in *proj_config_template.yml*
   * The plugins that are parsed right now:
      * IMPACT (HC vs LC)
      * LoFtee
