@@ -50,7 +50,14 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
   * python 3.10.9
   * Other required programs (plink, tabix, etc) are listed in proj_config_template.yml
 
-## stuff to figure out...
+## stuff to figure out...Ordered from most to least important
+Modify the ExWAS part so finds the proper annotatin ofile based on wildcard.
+
+Add validation checks for configuration format with informative errors
+
+Figure out how to put the conda environment in a docker/singularity and run with those image.
+  * how to run one container (the vep container) inside another container (the workflow container)????
+    
 Parameters are specified in 2 files right now.
   * nextflow_template.config:
     * specifies how to run nextflow in conda environment without conda, and potentially with docker, etc
@@ -66,12 +73,9 @@ Different 'study' with different masks and annotations are specified in proj_con
   * Perhaps specify this in the nextflow_template.config so each study is done in parallel?
   * e.g., input: Regeneron chr1, ... Regeneron chr23, Genomics England chr1,...Genomics England chr23 and run these in parallel?
 
-Figure out how to put the conda environment in a docker/singularity and run with those image.
-  * how to run one container (the vep container) inside another container (the workflow container)????
-
-Can add LDSC as a workflow
-  * Provided the user download all the files and give all the flag, should be pretty easy.
-
 Put the config files (filled in version) here?
 
 Find some small public example data to test installation and stuff and write test cases.
+
+Can add LDSC as a workflow
+  * Provided the user download all the files and give all the flag, should be pretty easy.
