@@ -107,9 +107,9 @@ var_consequence_summaries):
   return
 
 def main():
-  expected_annotation_file = os.path.join(WDIR,f'3_{VCF_NAME}_vcf_final_annotation.txt')
+  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt')
   db_file = os.path.join(
-    WDIR,f"5_1_{VCF_NAME}_vep_summaries.sqlite3.db"
+    WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
   
   print("Summarizing all VEP annotations")
@@ -216,7 +216,8 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/example_homo_sapiens_GRCh38.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
+    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 
 
@@ -240,7 +241,7 @@ if __name__ == "__main__":
   CONSTANT = CONFIG.CONST
   CONST_NUMERIC = CONFIG.CONST_NUMERIC
   
-  sys.path.append(os.path.basename(__file__))
+  sys.path.append(os.path.dirname(__file__))
   from python_helpers.vep_helpers import parse_vep
   from python_helpers.vep_helpers import parse_vep_headers
 

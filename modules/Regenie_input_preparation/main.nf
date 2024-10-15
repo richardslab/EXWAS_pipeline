@@ -101,7 +101,7 @@ process create_annotation_summaries{
     path "4_create_masks_${ofile_suffix}.log"
   
   output:
-    path "5_1_${vcf_file_name}_vep_summaries.sqlite3.db"
+    path "5_1_vep_summaries_${ofile_suffix}.sqlite3.db"
     path "5_1_create_masks_${ofile_suffix}.logs",emit: "log"
   
   script:
