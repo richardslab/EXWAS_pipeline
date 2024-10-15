@@ -27,7 +27,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
   * Using VEP
     * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep install.
     * Have to download everything, then specify these location so the proper directory will used when running the singularity image.
-  * The plugins that is parsed right now:
+  * The plugins that are parsed right now:
      * IMPACT (HC vs LC)
      * LoFtee
      * CADD
