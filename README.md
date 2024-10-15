@@ -1,7 +1,7 @@
 # EXWAS_pipeline
 
 ## running it (for now)
-1. put the conda environment file (exwas_pipeline.yml) in this directory at the same level as README.md
+1. put the conda environment file (exwas_pipeline.yml) at the same level as this main.nf (i.e., where this README.md is)
 2. Fill in nextflow_template.config and proj_config_template.yml
 3. run:
 ```
