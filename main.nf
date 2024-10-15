@@ -60,8 +60,8 @@ Prepare and run ExWAS gene burden tests from input VCF files
 
   # input data
   Input vcf file for generating annotations: ${params.annotation_vcf}
-  File for ExWAS: ${params.exwas_genetic}
-    ExWAS file type: ${params.exwas_genetic_file_type}
+  File for ExWAS: ${params.exwas_geneticstep2_exwas_genetic}
+    ExWAS file type: ${params.step2_exwas_genetic_file_type}
     ${log_str}
   # output data
   output directory: ${params.outdir}
@@ -106,9 +106,9 @@ workflow annotation_workflow {
     
     annotate_vcf(input_tuple,params.config_file,params.outdir,align_vcf.out.log)
 
-    // create_mask_files(params.config_file,annotation_vcf,params.outdir,annotate_vcf.out.log)
+    create_mask_files(input_tuple,params.config_file,params.outdir,annotate_vcf.out.log)
 
-    // create_annotation_summaries(params.config_file,annotation_vcf,params.outdir,create_mask_files.out.log)
+    // create_annotation_summaries(input_tuple,params.config_file,params.outdir,create_mask_files.out.log)
 
     // create_annotation_file(params.config_file,annotation_vcf,params.outdir,create_annotation_summaries.out.log)
 

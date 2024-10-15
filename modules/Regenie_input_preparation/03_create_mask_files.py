@@ -17,10 +17,10 @@ def sanity_checks():
   """
 
   # annotation file exists
-  expected_annotation_file = os.path.join(WDIR,f'3_{VCF_NAME}_vcf_final_annotation.txt')
+  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt')
   assert(
     os.path.isfile(expected_annotation_file)
-  ),f"Missing annotation file {os.path.isfile(expected_annotation_file)}"
+  ),f"Missing annotation file {expected_annotation_file}"
 
   print("Check if required plugins are in VEP annotation input")
   print ("*" * 20)
@@ -57,7 +57,7 @@ def main():
   for study,study_masks in CONFIG.mask_definitions.items():
     study_outdir = os.path.join(WDIR,study)
     os.makedirs(study_outdir,exist_ok=True)
-    mask_file = os.path.join(study_outdir,f"{VCF_NAME}_masks.txt")
+    mask_file = os.path.join(study_outdir,f"masks_{VCF_NAME}.txt")
     with open(mask_file,'w') as ptr:
       for mask,mask_def in study_masks.items():
         mask_def_string = ",".join(list(mask_def.keys()))

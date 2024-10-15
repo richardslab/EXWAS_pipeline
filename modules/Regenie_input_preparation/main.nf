@@ -82,7 +82,7 @@ process create_mask_files {
   output:
     // wildcard for study names
     // figure out if it can specify numbers
-    path "*/${ofile_suffix}_masks.txt" 
+    path "*/masks_${ofile_suffix}.txt" 
     path "4_create_masks_${ofile_suffix}.logs", emit: "log"
   
   script:
