@@ -61,7 +61,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 **Figure out how to put the conda environment in a docker/singularity and run with those image.**
   * how to run one container (the vep container) inside another container (the workflow container)????
 
-**Parameters are specified in 2 files right now.**
+**Parameters are specified in 2 files right now. Can it be merged?**
   * nextflow_template.config:
     * specifies how to run nextflow in conda environment without conda, and potentially with docker, etc
     * specifies the location of the vcf files for annotation and ExWAS.
