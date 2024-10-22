@@ -87,6 +87,7 @@ process create_mask_files {
   
   script:
   """
+  set -o pipefail
   python -u ${baseDir}/modules/Regenie_input_preparation/03_create_mask_files.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "4_create_masks_${ofile_suffix}.logs"
   """
 }
@@ -106,6 +107,7 @@ process create_annotation_summaries{
   
   script:
   """
+  set -o pipefail
   python -u ${baseDir}/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "5_1_create_masks_${ofile_suffix}.logs"
   """
 }
@@ -120,11 +122,12 @@ process create_annotation_file {
     path "5_1_create_masks_${ofile_suffix}.log"
   
   output:
-    path "*/*_annotations.txt"
+    path "*/annotations_${ofile_suffix}.txt"
     path "5_2_create_annotation_file_${ofile_suffix}.logs",emit: "log"
   
   script:
   """
+  set -o pipefail
   python -u ${baseDir}/modules/Regenie_input_preparation/04_2_create_annotation_files.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "5_2_create_annotation_file_${ofile_suffix}.logs"
   """
 
@@ -145,6 +148,7 @@ process create_setlist_file {
   
   script:
   """
+  set -o pipefail
   python -u ${baseDir}/modules/Regenie_input_preparation/05_create_set_list_file.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "6_create_setlist_file_${ofile_suffix}.logs"
   """
 }

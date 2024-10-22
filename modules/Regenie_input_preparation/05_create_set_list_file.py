@@ -13,7 +13,7 @@ def main():
   print("creating set list file")
   print("*"*20)
   vep_summarie_file = os.path.join(
-    WDIR,f"5_1_{VCF_NAME}_vep_summaries.sqlite3.db"
+    WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -22,11 +22,16 @@ def main():
 
   conn = sqlite3.connect(vep_summarie_file)
   cur = conn.cursor()
-  genes = cur.execute(
-    """
-    SELECT distinct gene FROM vep_summaries
-    """
-  ).fetchall()
+  try:
+    genes = cur.execute(
+      """
+      SELECT distinct gene FROM vep_summaries
+      """
+    ).fetchall()
+  except Exception as e:
+    print(f"SQLITE3 error: {e}")
+    conn.close()
+    raise
 
   setlist_file = os.path.join(
     WDIR,f"6_{VCF_NAME}.setlist"
@@ -35,11 +40,15 @@ def main():
   with open(setlist_file,'w') as ptr:  
     for gene in genes:
       gene = gene[0] # select returns a list of tuples
-      var_var_location = cur.execute(
-        """
-        SELECT distinct SNP,location FROM vep_summaries WHERE gene = :gene
-        """,{"gene":gene}
-      ).fetchall()
+      try:
+        var_var_location = cur.execute(
+          """
+          SELECT distinct SNP,location FROM vep_summaries WHERE gene = :gene
+          """,{"gene":gene}
+        )
+      except Excpetion as e:
+        print(f"SQLITE3 error: {e}")
+        raise
       min_position = None
       gene_chr = None
       all_vars = []
@@ -67,7 +76,6 @@ def main():
         else:
           assert(gene_chr == var_chr),f"different chr for same gene {gene} {var}"
       all_vars_str = ",".join(all_vars)
-      print(f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n")
       ptr.write(
         f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n"
       )
@@ -106,7 +114,8 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/example_homo_sapiens_GRCh38.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
+    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 
 

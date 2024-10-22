@@ -110,11 +110,9 @@ workflow annotation_workflow {
 
     create_annotation_summaries(input_tuple,params.config_file,params.outdir,create_mask_files.out.log)
 
-    // create_annotation_file(params.config_file,annotation_vcf,params.outdir,create_annotation_summaries.out.log)
+    create_annotation_file(input_tuple,params.config_file,params.outdir,create_annotation_summaries.out.log)
 
-    // create_annotation_file(params.config_file,params.annotation_vcf,params.outdir,create_annotation_summaries.out.log)
-
-    // create_setlist_file(params.config_file,params.annotation_vcf,params.outdir,create_annotation_summaries.out.log)
+    create_setlist_file(input_tuple,params.config_file,params.outdir,create_annotation_summaries.out.log)
 }
 workflow regenie_workflow {
   take:

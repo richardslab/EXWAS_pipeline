@@ -22,12 +22,11 @@ def __init_annotation_db(db_file):
       CREATE TABLE vep_summaries(SNP,location,plugin,consequence,gene)
     """
     )
-  except sqlite3.OperationalError as e:
-    f"SQLITE3 error: {e}"
-    sys.exit(1)
-  finally:
+  except Exception as e:
+    print(f"SQLITE3 error: {e}")
     conn.commit()
     conn.close()
+    raise
   return
 
 def __obtain_annotation_file_headers(expected_annotation_file):
@@ -73,7 +72,7 @@ def __obtain_annotation_file_headers(expected_annotation_file):
   return n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx
 
 def __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx):
-  line_elem = [x.strip() for x in line.split()]
+  line_elem = [x.strip() for x in line.split("\t")]
   variant_id = line_elem[id_idx]
   gene = line_elem[gene_idx]
   location = line_elem[location_idx]
@@ -84,8 +83,8 @@ def __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx
 
 def __get_update_info(cur,plugin,new_consequence,var_info):
   # based on query
-  location_idx = 0
-  consequence_idx = 1
+  query_location_idx = 0
+  query_consequence_idx = 1
   update_info = {
     "SNP":None,
     "location":None,
@@ -109,27 +108,27 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
     # check location is the same for same variant
     gene_vars = gene_vars[0] # gene vars initially a tuple
     assert(
-      gene_vars[location_idx] == var_info['location']
-    ),f"inconsistent annotation var: {var_info['variant_id']}"
+      gene_vars[query_location_idx] == var_info['location']
+    ),f"inconsistent annotation var: {var_info['variant_id']}. Found {gene_vars[query_location_idx]}. {query_location_idx} {gene_vars}"
     # update consequence to keep most severe across different transcripts
     if new_consequence == None:
       return update_info
-    if gene_vars[consequence_idx] == None:
+    if gene_vars[query_consequence_idx] == None:
       update_info['new_consequence'] = new_consequence
       return update_info
     if plugin in CONSTANT:
-      existing_consequence_priority = CONSTANT[plugin].index(gene_vars[consequence_idx])
+      existing_consequence_priority = CONSTANT[plugin].index(gene_vars[query_consequence_idx])
       new_consequence_priority = CONSTANT[plugin].index(new_consequence)
       if new_consequence_priority < existing_consequence_priority:
         update_info['new_consequence'] = new_consequence
         return update_info
     elif plugin in CONST_NUMERIC:
       if CONST_NUMERIC[plugin] == 'higher':
-        if new_consequence > gene_vars[consequence_idx]:
+        if new_consequence > gene_vars[query_consequence_idx]:
           update_info['new_consequence'] = new_consequence
           return update_info
       elif CONST_NUMERIC[plugin] == 'lower':
-        if new_consequence < gene_vars[consequence_idx]:
+        if new_consequence < gene_vars[query_consequence_idx]:
           update_info['new_consequence'] = new_consequence
           return update_info
       else:
@@ -162,6 +161,31 @@ def __update_annotation_db(cur,update_info):
     )
   return
 
+def __index_db(db_file,reindex=False):
+  try:  
+    # index the table
+    conn = sqlite3.connect(db_file)
+    cur = conn.cursor()
+    cur.execute(
+    """
+    CREATE UNIQUE INDEX gene_index ON vep_summaries(gene,SNP,plugin,consequence)
+    """
+    )
+    cur.execute(
+    """
+    CREATE UNIQUE INDEX plugin_index ON vep_summaries(plugin,consequence,SNP,gene)
+    """
+    )
+    cur.execute(
+    """
+    CREATE UNIQUE INDEX var_index ON vep_summaries(SNP,gene,plugin,consequence)
+    """
+    )
+  except sqlite3.OperationalError as e:
+    print(f"SQLITE3 error: {e}")
+    conn.close()
+    raise
+  return
 
 def main():
   expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt')
@@ -176,8 +200,9 @@ def main():
   print(f"Summaries are stored in {db_file}")
   print("")
 
-  # initialize database
+  # initialize database and create index
   __init_annotation_db(db_file)
+  __index_db(db_file)
 
   # obtain headers
   n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx = __obtain_annotation_file_headers(expected_annotation_file)
@@ -207,46 +232,35 @@ def main():
           write_chunks = True
         if bool(re.match("#",line)):
           continue
-        var_consequence_summaries,var_info = __get_consequence_summaries(line,id_idx,location_idx,gene_idx,annotation_idx)
+        var_consequence_summaries,var_info = __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx)
         for plugin,new_consequence in var_consequence_summaries.items():
           update_info = __get_update_info(cur,plugin,new_consequence,var_info)
           __update_annotation_db(cur,update_info)
+        # write and index after each
         if write_chunks:
           conn.commit()
           write_chunks = False
-  except sqlite3.OperationalError as e:
+  except Exception as e:
     print(f"SQLITE3 error: {e}")
-    sys.exit(1)
-  finally:
     conn.close()
+    raise
 
-  try:  
-    # index the table
+  try:
     conn = sqlite3.connect(db_file)
     cur = conn.cursor()
-    cur.execute(
-    """
-    CREATE UNIQUE INDEX gene_index ON vep_summaries(gene,SNP,plugin,consequence)
-    """
-    )
-    cur.execute(
-    """
-    CREATE UNIQUE INDEX plugin_index ON vep_summaries(plugin,consequence,SNP,gene)
-    """
-    )
-    cur.execute(
-    """
-    CREATE UNIQUE INDEX var_index ON vep_summaries(SNP,gene,plugin,consequence)
-    """
-    )
-    res = cur.execute("SELECT count(*) FROM (SELECT distinct gene FROM vep_summaries)").fetchone()
-    res = res[0]
-  except sqlite3.OperationalError as e:
-    print(f"SQLITE3 error: {e}")
-    sys.exit(1)
-  finally: 
-    conn.close()
-  print(f"generated annotations for {res} genes")
+    # it is a tuple
+    distinct_genes = cur.execute("SELECT count(*) FROM (SELECT distinct gene FROM vep_summaries)").fetchone()
+    distinct_genes = distinct_genes[0]
+    distinct_variants = cur.execute("SELECT count(*) FROM (SELECT distinct SNP FROM vep_summaries)").fetchone()
+    distinct_variants = distinct_variants[0]
+  except Exception as e:
+    print(f"SQLITE3 ERROR: {3}")
+    con.close()
+    res = None
+    raise
+
+  print(f"Parsed {distinct_variants} variants")
+  print(f"generated annotations for {distinct_genes} genes")
   print("="*20)
   return 
 
