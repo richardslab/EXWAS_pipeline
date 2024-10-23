@@ -76,21 +76,39 @@ Prepare and run ExWAS gene burden tests from input VCF files
 include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_annotation_summaries; create_annotation_file; create_setlist_file} from "./modules/Regenie_input_preparation"
 
 include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
+workflow testflow{
+    process test {
+    /*
+      Simple process to just echo what it got
+    */
+    input:
+      val x
+      tuple val(a),val(b)
+      
+    output:
+      stdout
 
-process test {
-  /*
-    Simple process to just echo what it got
-  */
-  input:
-    path x
-    
-  output:
-    val x
+    script:
+    """
+    echo ${x} ${a} ${b}
+    """
+  }
+  process test1{
+    output:
+      stdout
+    script:
+    """
+    echo 'beginning'
+    """
+  }
+  Channel.fromPath(params.step2_exwas_genetic).filter{
+    file -> file.name.endsWith(".${params.step2_exwas_genetic_file_type}")
+  }.map{
+    file -> [file,"${file.baseName}"]
+  }.set{ regenie_input }
 
-  script:
-  """
-  echo ${x}
-  """
+  test1()
+  test("abc",regenie_input,test1.log) | view{it}
 }
 
 // This workflow runs ExWAS for 1 VCF
@@ -114,30 +132,30 @@ workflow annotation_workflow {
 
     create_setlist_file(input_tuple,params.config_file,params.outdir,create_annotation_summaries.out.log)
 }
+
 workflow regenie_workflow {
-  take:
-    regenie_input
+  Channel.fromPath(params.step2_exwas_genetic).filter{
+    file -> file.name.endsWith(".${params.step2_exwas_genetic_file_type}")
+  }.map{
+    file -> [file,"${file.baseName}"]
+  }.set{ regenie_input }
 
-  main:
-    run_regenie_s1(params.config_file,params.outdir,regenie_input)
+  run_regenie_s1(params.config_file,params.outdir)
 
-    run_regenie_s2(params.config_file,params.annotation_vcf,params.outdir,params.step2_exwas_genetic_file_type,run_regenie_s1.out.log)
+  run_regenie_s2(regenie_input,params.config_file,params.outdir,params.step2_exwas_genetic,params.step2_exwas_genetic_file_type,params.annotation_vcf,run_regenie_s1.out.log)
 }
 
+
 workflow {
-  // Generate annotations, which will be input file path, base name tuples
-  Channel.fromPath(params.annotation_vcf).map{
-    file -> [file,"${file.baseName}"]
-  }.set{ annotation_inputs }
-
-  annotation_workflow(annotation_inputs)
-
-  // // Run Regenie
-  // Channel.fromPath(params.step2_exwas_genetic).map{
+  // // Generate annotations, which will be input file path, base name tuples
+  // Channel.fromPath(params.annotation_vcf).map{
   //   file -> [file,"${file.baseName}"]
-  // }.set{ regenie_input }
-  // regenie_workflow(regenie_input)
-  
+  // }.set{ annotation_inputs }
+
+  // annotation_workflow(annotation_inputs)
+
+  // Run Regenie  
+  regenie_workflow()
 }
 
 

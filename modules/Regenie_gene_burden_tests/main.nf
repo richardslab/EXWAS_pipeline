@@ -9,15 +9,16 @@ process run_regenie_s1{
   input:
     val config_file
     val wdir
-    tuple val(regenie_input) val(ofile_suffix)
   
   output:
-    path "1_regenie_S1_OUT_pred_${ofile_suffix}.list"
-    path "1_regenie_s1_${ofile_suffix}.logs",emit: "log"
+    path "7_Regenie_S1_pred.list"
+    path "7_regenie_s1.logs",emit: "log"
   
   script:
   """
-  python -u ${baseDir}/modules/Regenie_gene_burden_tests/01_regenie_s1.py -c ${config_file} -i ${regenie_input} --wdir ${wdir} | tee 1_regenie_s1_${ofile_suffix}.logs
+  set -o pipefail
+
+  python -u ${baseDir}/modules/Regenie_gene_burden_tests/01_regenie_s1.py -c ${config_file} --wdir ${wdir} | tee 7_regenie_s1.logs
   """
 }
 
@@ -25,17 +26,21 @@ process run_regenie_s2{
    storeDir params.outdir
 
   input:
+    tuple val(regenie_input),val(ofile_suffix)
     val config_file
     val wdir
-    tuple val(regenie_input) val(ofile_suffix)
-    val file_type
-    path "1_regenie_s1_${ofile_suffix}.logs"
+    val nxtflow_genetic
+    val nxtflow_genetic_type
+    val nxtflow_annotation
+    path "7_regenie_s1.logs"
   
   output:
-    path "2_regenie_s2_${ofile_suffix}.logs",emit: "log"
+    path "8_regenie_s2_${ofile_suffix}.logs",emit: "log"
   
   script:
   """
-  python -u ${baseDir}/modules/Regenie_gene_burden_tests/02_regenie_s2.py -c ${config_file} -i ${regenie_input} --wdir ${wdir} --regenie_file_type ${file_type} | tee 2_regenie_s2_${regenie_input}.logs
+  set -o pipefail
+
+  python -u ${baseDir}/modules/Regenie_gene_burden_tests/02_regenie_s2.py -c ${config_file} -i ${regenie_input} --wdir ${wdir} --nxtflow_genetic "${nxtflow_genetic}" --nxtflow_genetic_type ${nxtflow_genetic_type} --nxtflow_annotation "${nxtflow_annotation}" | tee 8_regenie_s2_${ofile_suffix}.logs
   """
 }

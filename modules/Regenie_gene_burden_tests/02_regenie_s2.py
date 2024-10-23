@@ -3,41 +3,77 @@
 import os,sys,shutil,yaml,re,argparse
 from collections import namedtuple
 import subprocess as sp
-
+import warnings
+from pathlib import Path
 
 def _run_regenie_s2_each_study(study):
+  regenie_s1_dir = os.path.join(WDIR,"Regenie_S1")
+
   study_outdir = os.path.join(WDIR,study)
   assert(os.path.isdir(study_outdir)),f"missing a step for {study_outdir}??"
+  regenie_s2_dir = os.path.join(study_outdir,"Regenie_S2")
+  os.makedirs(regenie_s2_dir,exist_ok=True)
 
-  
+  print("Looking for relevant supplementary files")
+  expected_annotation_file,expected_mask_file,expected_setlist_file,wildcard_characters = regenie_helpers.__find_regenie_supplementary_files(
+    input_vcf = cargs.input_vcf,
+    nxtflow_g = cargs.nxtflow_g,
+    nxtflow_annotation = cargs.nxtflow_annotation,
+    study_dir =study_outdir
+  )
+  print("*"*20)
+  print("found the following files")
+  print(f"Regenie Input file: {cargs.input_vcf}")
+  print(f"Annotation file: {expected_annotation_file}")
+  print(f"Set list file: {expected_setlist_file}")
+  print(f"Mask file: {expected_mask_file}")
+  print("="*20)
 
   s2_cmd = [
     CONFIG.regenie,
     "--step","2",
-    "--anno-file",os.path.join(study_outdir,f"{VCF_NAME}_annotations.txt"),
-    "--mask-def",os.path.join(study_outdir,f"{VCF_NAME}_masks.txt"),
-    "--set-list",os.path.join(WDIR,f"6_{VCF_NAME}.setlist")
+    "--anno-file",expected_annotation_file,
+    "--mask-def",expected_mask_file,
+    "--set-list",expected_setlist_file
   ]
+  if cargs.nxtflow_gtype == "pgen":
+    s2_cmd += [
+      "--pgen",cargs.input_vcf
+    ]
+  elif cargs.nxtflow_gtype == "bgen":
+    s2_cmd += [
+      "--bgen",cargs.input_vcf
+    ]
+    if "--sample" not in CONFIG.s2_params:
+      # warnings goes to stderr, so print also to put it in log
+      # can also redirect outputs in pipeline
+      warnings.warn("Using bgen files without sample files")
+      print("Using bgen files without sample files")
+  elif cargs.nxtflow_gtype == "bed":
+    c2_cmd += [
+      "--bed",cargs.input_vcf
+    ]
+  else:
+    raise ValueError("unrecognized genetic file type")
   for k,v in CONFIG.s2_params.items():
     if k == "--lowmem-prefix":
       v = os.path.join(WDIR,v)
     if v == "":
       s2_cmd += [k]
     elif v != "":
-      s2_cmd += [f"{k} {v}"]
+      s2_cmd += [k,v]
     else:
       assert False, 'invalid Regenie Step 2 value format issue in config file {k} {v}'    
   s2_cmd += [
-    "--pred",os.path.join(WDIR,f"7_{VCF_NAME}_regenie_S1_OUT_pred.list"),
-    "--out",os.path.join(study_outdir,f"8_{VCF_NAME}_regenie_S2_OUT")
+    "--pred",os.path.join(regenie_s1_dir,f"7_Regenie_S1_pred.list"),
+    "--out",os.path.join(regenie_s2_dir,f"8_regenie_S2_OUT_{VCF_NAME}")
   ]
   print("Regenie S2 command:")
   print(" ".join(s2_cmd))
   print("*"*20)
   s2_out = sp.run(
-    " ".join(s2_cmd),check=True,shell=True,stderr=sp.PIPE
+    s2_cmd,check=True,stderr=sys.stderr
   )
-  print(s2_out.stderr.decode("utf-8"))
   print("="*20)
 
   return
@@ -72,6 +108,21 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    "--nxtflow_genetic",
+    dest="nxtflow_g",
+    help="Nextflow 'step2_exwas_genetic' input parameter"
+  )
+  parser.add_argument(
+    "--nxtflow_genetic_type",
+    dest="nxtflow_gtype",
+    help="Nextflow 'step2_exwas_genetic' input parameter"
+  )
+  parser.add_argument(
+    "--nxtflow_annotation",
+    dest="nxtflow_annotation",
+    help="Nextflow 'annotation_vcf' input parameter"
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -79,11 +130,15 @@ if __name__ == "__main__":
   cargs =   parser.parse_args()
 
   if cargs.test == 't':
-    import mock
+    from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/wes_qc_chr3_chr_full_final.vcf.subset.sorted.vcf.gz"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr10"
+    cargs.nxtflow_gtype="pgen"
+    cargs.nxtflow_g="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr*"
+    cargs.nxtflow_annotation = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr*_sitesonly.vcf"
+    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_gene_burden_tests/02_regenie_s2.py"
     print("TEST")
   
 
@@ -104,7 +159,10 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-  VCF_NAME = os.path.basename(cargs.input_vcf)
+  VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
+
+  sys.path.append(os.path.dirname(__file__))
+  from python_helpers import regenie_helpers
 
   main()
