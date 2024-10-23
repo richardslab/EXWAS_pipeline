@@ -23,7 +23,7 @@ def _run_regenie_s2_each_study(study):
   )
   print("*"*20)
   print("found the following files")
-  print(f"Regenie Input file: {cargs.input_vcf}")
+  print(f"Regenie Input file: {cargs.input_vcf}.{cargs.nxtflow_gtype}")
   print(f"Annotation file: {expected_annotation_file}")
   print(f"Set list file: {expected_setlist_file}")
   print(f"Mask file: {expected_mask_file}")
@@ -42,13 +42,13 @@ def _run_regenie_s2_each_study(study):
     ]
   elif cargs.nxtflow_gtype == "bgen":
     s2_cmd += [
-      "--bgen",cargs.input_vcf
+      "--bgen",f"{cargs.input_vcf}.bgen"
     ]
     if "--sample" not in CONFIG.s2_params:
       # warnings goes to stderr, so print also to put it in log
       # can also redirect outputs in pipeline
       warnings.warn("Using bgen files without sample files")
-      print("Using bgen files without sample files")
+      print("WARNING: Using bgen files without sample files")
   elif cargs.nxtflow_gtype == "bed":
     c2_cmd += [
       "--bed",cargs.input_vcf
@@ -134,8 +134,8 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr10"
-    cargs.nxtflow_gtype="pgen"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr10.bgen"
+    cargs.nxtflow_gtype="bgen"
     cargs.nxtflow_g="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr*"
     cargs.nxtflow_annotation = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr*_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_gene_burden_tests/02_regenie_s2.py"
@@ -159,6 +159,7 @@ if __name__ == "__main__":
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
+  cargs.input_vcf = str(Path(cargs.input_vcf).with_suffix(""))
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = cargs.wdir
 

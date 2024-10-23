@@ -4,10 +4,8 @@ def __find_regenie_supplementary_files(input_vcf,nxtflow_g,nxtflow_annotation,st
 
   # if wildcard present extract wildcard character
   if "*" in nxtflow_g:
+    assert(len(re.findall("\*",nxtflow_g)) == 1),f"More than 1 wildcards {nxtflow_g}"
     wildcard_characters = re.sub(re.sub("\*","",nxtflow_g),"",input_vcf)
-    assert(
-      re.sub(wildcard_characters,"",input_vcf) == re.sub("\*","",nxtflow_g)
-    ),f"issue extracting wildcard characters"
   else:
     wildcard_characters = None
   

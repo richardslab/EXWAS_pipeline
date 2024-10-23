@@ -11,7 +11,7 @@ process run_regenie_s1{
     val wdir
   
   output:
-    path "7_Regenie_S1_pred.list"
+    path "Regenie_S1/7_Regenie_S1_pred.list"
     path "7_regenie_s1.logs",emit: "log"
   
   script:
