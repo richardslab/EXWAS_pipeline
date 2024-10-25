@@ -33,6 +33,7 @@ process run_regenie_s2{
     val nxtflow_genetic_type
     val nxtflow_annotation
     path "7_regenie_s1.logs"
+    path "annotation_workflow_log"
   
   output:
     path "8_regenie_s2_${ofile_suffix}.logs",emit: "log"

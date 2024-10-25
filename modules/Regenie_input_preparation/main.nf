@@ -103,7 +103,7 @@ process create_annotation_summaries{
   
   output:
     path "5_1_vep_summaries_${ofile_suffix}.sqlite3.db"
-    path "5_1_create_masks_${ofile_suffix}.logs",emit: "log"
+    path "5_1_vep_summaries_${ofile_suffix}.logs",emit: "log"
   
   script:
   """
@@ -119,7 +119,7 @@ process create_annotation_file {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "5_1_create_masks_${ofile_suffix}.log"
+    path "5_1_vep_summaries_${ofile_suffix}.log"
   
   output:
     path "*/annotations_${ofile_suffix}.txt"
@@ -140,7 +140,7 @@ process create_setlist_file {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "6_create_setlist_file_${ofile_suffix}.log"
+    path "5_1_vep_summaries_${ofile_suffix}.log"
   
   output:
     path "6_${ofile_suffix}.setlist"
