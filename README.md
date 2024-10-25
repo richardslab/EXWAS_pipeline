@@ -68,11 +68,11 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 
 ## stuff to figure out...Ordered from most to least important
 
-**Modify the ExWAS part so finds the proper annotatin ofile based on wildcard.**
-
 **Add validation checks for configuration format with informative errors**
 
 **simplify config file for specifying masks**
+
+**Create tasks to cleanup output if process crashes**
 
 **Figure out how to put the conda environment in a docker/singularity and run with those image.**
   * how to run one container (the vep container) inside another container (the workflow container)????
