@@ -10,7 +10,7 @@ Will also assert that the annotations are the same across all plugins
 """
 
 
-def __parse_sift4g_pred(consequence,consequence_elem,SIFT_ORDER):
+def __parse_sift_pred(consequence,consequence_elem,SIFT_ORDER):
   sift_pred = [x.upper().strip() for x in consequence_elem[1].split(",")]
   sift_pred = [x for x in sift_pred if x!='.']
   if len(sift_pred) == 0:
