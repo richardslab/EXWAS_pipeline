@@ -58,7 +58,7 @@ process annotate_vcf {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "2_vcf_alignment_${ofile_suffix}.log"
+    path align_vcf_logs
 
   output:
     path "3_vep_annotation_${ofile_suffix}.logs", emit: 'log'
@@ -77,7 +77,7 @@ process create_mask_files {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "3_vep_annotation_${ofile_suffix}.log"
+    path annotate_vcf_logs
   
   output:
     // wildcard for study names
@@ -99,7 +99,7 @@ process create_annotation_summaries{
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "4_create_masks_${ofile_suffix}.log"
+    path create_mask_files_logs
   
   output:
     path "5_1_vep_summaries_${ofile_suffix}.sqlite3.db"
@@ -108,7 +108,7 @@ process create_annotation_summaries{
   script:
   """
   set -o pipefail
-  python -u ${baseDir}/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "5_1_create_masks_${ofile_suffix}.logs"
+  python -u ${baseDir}/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py -c ${config_file} -i ${annotation_vcf} --wdir ${wdir} | tee "5_1_vep_summaries_${ofile_suffix}.logs"
   """
 }
 
@@ -119,7 +119,7 @@ process create_annotation_file {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "5_1_vep_summaries_${ofile_suffix}.log"
+    path create_annotation_summaries_logs
   
   output:
     path "*/annotations_${ofile_suffix}.txt"
@@ -140,7 +140,7 @@ process create_setlist_file {
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "5_1_vep_summaries_${ofile_suffix}.log"
+    path create_annotation_summaries_logs
   
   output:
     path "6_${ofile_suffix}.setlist"

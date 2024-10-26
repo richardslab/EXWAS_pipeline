@@ -43,13 +43,8 @@ def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
   return regenie_lambdas
 
 def __compute_lambda(each_study):
-  study_dir = os.path.join(WDIR,each_study)
-  regenie_s2_dir = os.path.join(study_dir,'Regenie_S2')
-  summary_out = os.path.join(study_dir,'Regenie_Summaries')
-  summary_file = os.path.join(summary_out,'Phenotypes_results_paths.yaml.gz')
-  assert(os.path.isfile(summary_file)),f"Missing phenotype paths. Run 00_find_data.py or error in earlier steps"
-  with gzip.open(summary_file,'rt') as ptr:
-    study_regenie_result_paths = yaml.safe_load(ptr)
+  study_regenie_result_paths,summary_out = exwas_helpers.__get_study_exwas_paths(WDIR,each_study)
+  
   regenie_lambdas = {}
   phenotypes = list(study_regenie_result_paths.keys())
   with Pool(min(cpu_count(),PROCESSING_THREADS)) as p:

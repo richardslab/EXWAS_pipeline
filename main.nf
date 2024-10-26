@@ -52,7 +52,6 @@ if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Assumes 1-1 matchign between VCF and ExWAS input"
 }
 
-
 log.info """
               Regenie ExWAS pipeline
 ==================================================
