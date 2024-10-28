@@ -15,7 +15,7 @@
   p21022: Age_at_recruitment
   p30740_i0: Glucose
   p30010_i0: RBC
-  p21001_i0: BMI0
+  p21001_i0: BMI
   p48_i0: Waist_circumference
   p49_i0: Hip_circumference
 """

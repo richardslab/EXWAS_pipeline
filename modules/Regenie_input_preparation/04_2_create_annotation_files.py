@@ -13,7 +13,7 @@ from pathlib import Path
 def __init_annotation():
   all_studies = list(CONFIG.mask_definitions.keys())
   for study in all_studies:
-    study_ofile = os.path.join(WDIR,study,f"{VCF_NAME}_annotations.txt")
+    study_ofile = os.path.join(WDIR,study,f"annotations_{VCF_NAME}.txt")
     assert(
       not os.path.isfile(study_ofile)
     ),f"annotation file found for {study}. Delete it first, or skip this step"    
@@ -22,19 +22,9 @@ def __init_annotation():
     print(f"annotation for {study} written to {study_ofile}")
   return all_studies
 
-
-def __obtain_study_annotations(study):
-  study_masks = CONFIG.mask_definitions[study]
-  all_annotation_info = dict()
-  for mask_def in study_masks.values():
-    all_annotation_info.update(mask_def)
-  return all_annotation_info
-
-def __eval_annotation(var,gene,annotation_def,vep_summarie_file):
-  annotation_type = annotation_def[1]
-  annotation_criteria = annotation_def[0]
+def __eval_plugins(var,gene,vep_summarie_file,criteria,plugin_definition):
   n_criteria_satisfied = 0
-  for plugin,plugin_criteria in annotation_criteria.items():
+  for plugin,plugin_criteria in plugin_definition.items():
     try:
       conn2 = sqlite3.connect(vep_summarie_file)
       cur2 = conn2.cursor()
@@ -48,7 +38,6 @@ def __eval_annotation(var,gene,annotation_def,vep_summarie_file):
       print(f"SQLITE3 error fetching annoations: {e}")
       conn2.close()
       raise
-
     if len(variant_criteria) == 0:
       continue
     assert(len(variant_criteria)==1),f"{var} {gene} {plugin} had more than 1 entry for gene plugin"
@@ -80,23 +69,34 @@ def __eval_annotation(var,gene,annotation_def,vep_summarie_file):
           assert(False),f"Parse plugin error: plugin {plugin}, criteria {plugin_criteria}"
       else:
         assert(False),f"Parse plugin error: plugin {plugin}, criteria {plugin_criteria}"
-  
-  if annotation_type == "all":
-    if n_criteria_satisfied == len(annotation_criteria):
+  if criteria == "all":
+    if n_criteria_satisfied == len(plugin_definition):
       return True
     else:
       return False
-  elif annotation_type == "any":
+  elif criteria == "any":
     if n_criteria_satisfied >= 1:
       return True
     else:
       return False
   else:
-    annotation_type = int(annotation_type)
-    if n_criteria_satisfied >= annotation_type:
+    criteria = int(criteria)
+    if n_criteria_satisfied >= criteria:
       return True
     else:
       return False
+
+
+def __eval_annotation(var,gene,annotation_def,vep_summarie_file):
+  satisfied = []
+  for criteria,plugin_definition in annotation_def.items():
+    plugin_status = __eval_plugins(var,gene,vep_summarie_file,criteria,plugin_definition)
+    satisfied.append(plugin_status)
+  if all(satisfied):
+    return True
+  else:
+    return False
+  
   
 
 def main():
@@ -128,10 +128,8 @@ def main():
     conn.close()
     raise
   
-
   # Make sure there isn't an annotation file created already
   all_studies = __init_annotation()
-
 
   # it loops through all variants for each gene
   line_ct = 0
@@ -140,7 +138,7 @@ def main():
     if line_ct % 5000 == 0:
       print(f"{line_ct}/{n_rows}: {'{:.3e}'.format(line_ct/n_rows*100)}% completed")
     for study in all_studies:
-      study_annotations = __obtain_study_annotations(study)
+      study_annotations = CONFIG.annotation_definitions[study]
       # assign this variant to masks
       var_with_possible_annotations = []
       for annotation,annotation_def in study_annotations.items():

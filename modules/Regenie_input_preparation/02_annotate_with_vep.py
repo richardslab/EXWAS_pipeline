@@ -39,11 +39,12 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     replaced_x = re.sub("\$vep_cache_dir",'/tmp/vep_cache',x)
     replaced_x = re.sub("\$vep_plugins_dir",'/tmp/vep_plugins',replaced_x)
     vep_cmd += ['--plugin',replaced_x]
+  # Do not use --fork option due to error with loftee
+  # https://github.com/konradjk/loftee/issues/45
   vep_cmd += [
     '--offline',
     '--symbol','--coding_only',
-    '--no_stats',
-    '--fork',"1"
+    '--no_stats'
   ]
 
   full_cmd = apptainer_cmd + [f"\"{' '.join(vep_cmd)}\""]
