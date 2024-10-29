@@ -65,7 +65,7 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
 
 def main():
   vcf_infile = f'2_bcftool_sitesonly_{VCF_NAME}.vcf.gz'
-  vcf_anno_out=f'3_annotation_results_{VCF_NAME}.txt'
+  vcf_anno_out=f'3_annotation_results_{VCF_NAME}.txt.gz'
   
   annotate_vcf(vcf_infile,vcf_anno_out)
 

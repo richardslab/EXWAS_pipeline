@@ -18,20 +18,32 @@
   p21001_i0: BMI
   p48_i0: Waist_circumference
   p49_i0: Hip_circumference
+
+  Processing: 
+    - IRNT transform the data.
+    - Among EUR
 """
 
 import os,sys,shutil,yaml,re,glob,csv,gzip
 import pandas as pd
 import numpy as np
+from scipy import stats
 
 # inputs
 input_file = "/home/richards/kevin.liang2/scratch/exwas_pipeline/data/UKB_phenotypes/UKB_phenotype/UKB_continuous_trait_Nov232023_participant.csv"
+eur_individuals="/project/richards/guillaume.butler-laporte/ukb_covid_gwas/anc/ukb.eurFIDIIDPCA.txt"
 # outputs
 output_dir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/processed_UKB_phenotypes"
 
+# EUR individuals
+eur_ind = pd.read_csv(eur_individuals,sep=" ",header=None,dtype={0:str,1:str}).rename(
+  {
+    0:"FID",1:"IID"
+  },axis=1
+)
 
-
-raw_phenotypes = pd.read_csv(input_file,sep=",",header=0,quoting=csv.QUOTE_NONE)
+# Rename the columns
+raw_phenotypes = pd.read_csv(input_file,sep=",",header=0,quoting=csv.QUOTE_NONE,dtype={"eid":str})
 
 columns_info = {
   "eid":"FID",
@@ -60,9 +72,36 @@ raw_phenotypes = raw_phenotypes.assign(
   IID=lambda df: df['FID']
 )
 
-rel_phenotypes = raw_phenotypes[["FID","IID",'SBP','DBP','Standing_height','LDL',"TG","Calcium","Dbilirubin","Glucose","RBC","BMI"]]
+rel_phenotypes = raw_phenotypes[["FID","IID",'SBP','DBP','Standing_height','LDL',"TG","Calcium","Dbilirubin","Glucose","RBC","BMI"]].query(
+  f"FID.isin({eur_ind.FID.to_list()})"
+).copy()
 
-with gzip.open(os.path.join(output_dir,'UKB_phenotypes_renamed_columns.tsv.gz'),'wt') as ptr:
+
+# IRNT transform all the columns
+phenotype_cols = ['SBP','DBP','Standing_height','LDL',"TG","Calcium","Dbilirubin","Glucose","RBC","BMI"]
+def irnt(pheno_series):
+  val_ranks = pheno_series.rank() # ranks. top rank = largest value
+  rank_transformed = (val_ranks-0.5)/(np.sum(~pheno_series.isna()))
+  irnt_values = pd.Series(stats.norm.ppf(rank_transformed))
+  return irnt_values
+
+rel_phenotypes[phenotype_cols] = rel_phenotypes[phenotype_cols].apply(
+  lambda col: irnt(col),
+  axis=0
+)
+
+pheno_mean = rel_phenotypes[phenotype_cols].apply(
+  lambda col: np.mean(col[~col.isna()]),
+  axis=0
+)
+pheno_sd = rel_phenotypes[phenotype_cols].apply(
+  lambda col: np.std(col[~col.isna()]),
+  axis=0
+)
+
+
+
+with gzip.open(os.path.join(output_dir,'UKB_phenotypes_renamed_columns_EUR_IRNT.tsv.gz'),'wt') as ptr:
   rel_phenotypes.to_csv(
     ptr,quoting=csv.QUOTE_NONE,header=True,index=False,sep="\t",na_rep="NA"
   )
