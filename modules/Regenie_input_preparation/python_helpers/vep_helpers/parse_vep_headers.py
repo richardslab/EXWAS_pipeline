@@ -1,4 +1,4 @@
-import re
+import re,gzip
 
 def get_vep_plugins(vep_file):
   """
@@ -12,7 +12,7 @@ def get_vep_plugins(vep_file):
   end_search_str="#Uploaded_variation"
 
   extra_columns = []
-  with open(vep_file,'r') as ptr:
+  with gzip.open(vep_file,'rt') as ptr:
     start_search = False
     end_search = False
     for line in ptr:

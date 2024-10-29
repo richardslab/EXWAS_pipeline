@@ -62,7 +62,7 @@ process annotate_vcf {
 
   output:
     path "3_vep_annotation_${ofile_suffix}.logs", emit: 'log'
-    path "3_annotation_results_${ofile_suffix}.txt"
+    path "3_annotation_results_${ofile_suffix}.txt.gz"
 
   script:
   """

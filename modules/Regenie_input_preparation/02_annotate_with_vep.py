@@ -44,7 +44,8 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
   vep_cmd += [
     '--offline',
     '--symbol','--coding_only',
-    '--no_stats'
+    '--no_stats',
+    "--compress_output",'bgzip'
   ]
 
   full_cmd = apptainer_cmd + [f"\"{' '.join(vep_cmd)}\""]

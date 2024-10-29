@@ -16,7 +16,7 @@ def sanity_checks():
   A bunch of asserts. if all good, then passes
   """
   # annotation file exists
-  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt')
+  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt.gz')
   assert(
     os.path.isfile(expected_annotation_file)
   ),f"Missing annotation file {expected_annotation_file}"

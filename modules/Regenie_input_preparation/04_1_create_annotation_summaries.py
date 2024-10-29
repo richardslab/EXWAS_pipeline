@@ -37,7 +37,7 @@ def __obtain_annotation_file_headers(expected_annotation_file):
       expected_annotation_file (str): the path to annotation file
   """
   n_header_rows = 0
-  with open(expected_annotation_file,'r') as ptr:
+  with gzip.open(expected_annotation_file,'rt') as ptr:
     headers = []
     id_idx = None
     location_idx = None
@@ -188,7 +188,7 @@ def __index_db(db_file,reindex=False):
   return
 
 def main():
-  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt')
+  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt.gz')
   db_file = os.path.join(
     WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
@@ -220,7 +220,7 @@ def main():
   try:
     conn = sqlite3.connect(db_file)
     cur = conn.cursor()
-    with open(expected_annotation_file,'r') as ptr:
+    with gzip.open(expected_annotation_file,'rt') as ptr:
       line_ct = 0
       # whether to commit the db (i.e., write to file)
       write_chunks = False
