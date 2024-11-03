@@ -32,7 +32,7 @@ process run_regenie_s2{
     val nxtflow_genetic
     val nxtflow_genetic_type
     val nxtflow_annotation
-    path regenie_s1_logs
+    path "7_regenie_s1.logs"
 
   
   output:

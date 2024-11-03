@@ -34,10 +34,10 @@ process align_vcf{
   */
   storeDir params.outdir
   input:
+    path check_yaml_config_logs
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path "1_yaml_config_checks_${ofile_suffix}.log"
 
 
   output:
@@ -55,10 +55,10 @@ process align_vcf{
 process annotate_vcf {
   storeDir params.outdir
   input:
+    path align_vcf_logs
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path align_vcf_logs
 
   output:
     path "3_vep_annotation_${ofile_suffix}.logs", emit: 'log'
@@ -74,10 +74,10 @@ process annotate_vcf {
 process create_mask_files {
   storeDir params.outdir
   input: 
+    path annotate_vcf_logs
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path annotate_vcf_logs
   
   output:
     // wildcard for study names
@@ -96,10 +96,10 @@ process create_annotation_summaries{
   storeDir params.outdir
 
   input:
+    path annotate_vcf
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path create_mask_files_logs
   
   output:
     path "5_1_vep_summaries_${ofile_suffix}.sqlite3.db"
@@ -116,10 +116,10 @@ process create_annotation_file {
   storeDir params.outdir
 
   input:
+    path create_annotation_summaries_logs
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path create_annotation_summaries_logs
   
   output:
     path "*/annotations_${ofile_suffix}.txt"
@@ -137,10 +137,10 @@ process create_setlist_file {
   storeDir params.outdir
 
   input:
+    path create_annotation_summaries_logs
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
     val wdir
-    path create_annotation_summaries_logs
   
   output:
     path "6_${ofile_suffix}.setlist"

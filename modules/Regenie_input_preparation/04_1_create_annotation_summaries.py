@@ -32,7 +32,6 @@ def __init_annotation_db(db_file):
 def __obtain_annotation_file_headers(expected_annotation_file):
   """Obtain the header of the file.
   Do everything separately so can parse the annotation file in parallele and not line by line
-
   Args:
       expected_annotation_file (str): the path to annotation file
   """
@@ -61,7 +60,6 @@ def __obtain_annotation_file_headers(expected_annotation_file):
         gene_idx = headers.index(CONFIG.vep_gene)
         annotation_idx = headers.index(CONFIG.vep_annotations)
         continue
-    
       # finished all the headers, didn't find the header line, then there is a problem
       # with the annotation file
       if not re.match("#",line):
@@ -86,11 +84,12 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
   query_location_idx = 0
   query_consequence_idx = 1
   update_info = {
-    "SNP":None,
-    "location":None,
+    "SNP":var_info['variant_id'],
+    "location":var_info['location'],
     "plugin":None,
     "consequence":None,
-    "gene":None
+    "gene":var_info['gene'],
+    "update":False
   }
   query_params={k:var_info[k] for k in ['gene','variant_id']}
   query_params.update({"plugin":plugin})
@@ -114,46 +113,52 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
     if new_consequence == None:
       return update_info
     if gene_vars[query_consequence_idx] == None:
-      update_info['new_consequence'] = new_consequence
+      update_info['plugin'] = plugin
+      update_info['consequence'] = new_consequence
+      update_info['update'] =True
       return update_info
     if plugin in CONSTANT:
       existing_consequence_priority = CONSTANT[plugin].index(gene_vars[query_consequence_idx])
       new_consequence_priority = CONSTANT[plugin].index(new_consequence)
       if new_consequence_priority < existing_consequence_priority:
-        update_info['new_consequence'] = new_consequence
+        update_info['plugin'] = plugin
+        update_info['consequence'] = new_consequence
+        update_info['update'] =True
         return update_info
     elif plugin in CONST_NUMERIC:
       if CONST_NUMERIC[plugin] == 'higher':
         if new_consequence > gene_vars[query_consequence_idx]:
-          update_info['new_consequence'] = new_consequence
+          update_info['plugin'] = plugin
+          update_info['consequence'] = new_consequence
+          update_info['update'] =True
           return update_info
       elif CONST_NUMERIC[plugin] == 'lower':
         if new_consequence < gene_vars[query_consequence_idx]:
-          update_info['new_consequence'] = new_consequence
+          update_info['plugin'] = plugin
+          update_info['consequence'] = new_consequence
+          update_info['update'] =True
           return update_info
       else:
         assert(False),f"unknown numeric plugin orders {plugin}"
     else:
       assert(False),f"Unknown plugin type {plugin}"
   else:
-    update_info['SNP'] = var_info['variant_id']
-    update_info['location'] = var_info['location']
     update_info['plugin'] = plugin
     update_info['consequence'] = new_consequence
-    update_info['gene'] = var_info['gene']
   return update_info
 
 def __update_annotation_db(cur,update_info):
   # constant for indexing database results
   fields_to_update = {k:v for k,v in update_info.items() if v != None}
   # if all fields are new == new entry
-  if len(fields_to_update) == 5:
+  if not fields_to_update['update'] and 'consequence' in fields_to_update:
     cur.execute(
       """
       INSERT INTO vep_summaries VALUES(:SNP,:location,:plugin,:consequence,:gene) 
       """,fields_to_update
     )
-  elif "consequence" in fields_to_update:
+  elif fields_to_update['update']:
+    assert('consequence' in fields_to_update),"what are we updating..."
     cur.execute(
       """
       UPDATE vep_summaries SET consequence = :consequence WHERE SNP = :SNP AND plugin = :plugin AND gene = :gene AND location = :location
@@ -295,7 +300,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr2_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 

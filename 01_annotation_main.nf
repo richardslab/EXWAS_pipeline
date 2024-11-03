@@ -56,7 +56,7 @@ if (wildcard_found[0] && wildcard_found[1]){
 log.info """
               Regenie ExWAS pipeline
 ==================================================
-Annotate and prepare data for running ExWAS burden testing using Regenie
+Annotate and prepare data for ExWAS burden testing with Regenie
 
   # input data
   Input vcf file for generating annotations: ${params.annotation_vcf}
@@ -90,24 +90,24 @@ process test {
 
 // This workflow runs ExWAS for 1 VCF
 // by using Channel, can run mutliple VCF in parallele (i.e, per chr)
-workflow annotation_workflow {
+workflow annotation_workflow {192
   take:
-    annotation_inputs
+    each_input
   main:
-    check_yaml_config(annotation_inputs,params.config_file,params.outdir)  
+    check_res = check_yaml_config(each_input,params.config_file,params.outdir)
 
-    align_vcf(annotation_inputs,params.config_file,params.outdir,check_yaml_config.out.log)
+    align_vcf_res = align_vcf(check_res.log.collect(),each_input,params.config_file,params.outdir)
     
-    annotate_vcf(annotation_inputs,params.config_file,params.outdir,align_vcf.out.log)
+    annotate_res = annotate_vcf(align_vcf_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    create_mask_files(annotation_inputs,params.config_file,params.outdir,annotate_vcf.out.log)
+    mask_res = create_mask_files(annotate_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    create_annotation_summaries(annotation_inputs,params.config_file,params.outdir,create_mask_files.out.log)
+    annotate_summary_res = create_annotation_summaries(mask_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    create_annotation_file(annotation_inputs,params.config_file,params.outdir,create_annotation_summaries.out.log)
+    annotate_file_res = create_annotation_file(annotate_summary_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    create_setlist_file(annotation_inputs,params.config_file,params.outdir,create_annotation_summaries.out.log)
-  
+    setlist_res = create_setlist_file(annotate_file_res.log.collect(),each_input,params.config_file,params.outdir) 
+ 
 }
 
 workflow {

@@ -68,6 +68,7 @@ columns_info = {
 raw_phenotypes = raw_phenotypes.rename(
   columns_info,axis=1
 )
+
 raw_phenotypes = raw_phenotypes.assign(
   IID=lambda df: df['FID']
 )
@@ -80,28 +81,31 @@ rel_phenotypes = raw_phenotypes[["FID","IID",'SBP','DBP','Standing_height','LDL'
 # IRNT transform all the columns
 phenotype_cols = ['SBP','DBP','Standing_height','LDL',"TG","Calcium","Dbilirubin","Glucose","RBC","BMI"]
 def irnt(pheno_series):
+  """Performs Inverse Rank Normal Transformation
+  
+  Based on: https://cran.r-project.org/web/packages/RNOmni/vignettes/RNOmni.html#inverse-normal-transformation
+
+  essentially: PPF((rank-0.5)/n).
+
+  Args:
+      pheno_series (pandas series): series of value
+
+  Returns:
+      numpy array: an array of IRNT values
+  """
   val_ranks = pheno_series.rank() # ranks. top rank = largest value
   rank_transformed = (val_ranks-0.5)/(np.sum(~pheno_series.isna()))
-  irnt_values = pd.Series(stats.norm.ppf(rank_transformed))
+  irnt_values = stats.norm.ppf(rank_transformed)
   return irnt_values
-
-rel_phenotypes[phenotype_cols] = rel_phenotypes[phenotype_cols].apply(
+irnt_rel_phenotypes = rel_phenotypes.copy()
+irnt_rel_phenotypes[phenotype_cols] = irnt_rel_phenotypes[phenotype_cols].apply(
   lambda col: irnt(col),
-  axis=0
-)
-
-pheno_mean = rel_phenotypes[phenotype_cols].apply(
-  lambda col: np.mean(col[~col.isna()]),
-  axis=0
-)
-pheno_sd = rel_phenotypes[phenotype_cols].apply(
-  lambda col: np.std(col[~col.isna()]),
   axis=0
 )
 
 
 
 with gzip.open(os.path.join(output_dir,'UKB_phenotypes_renamed_columns_EUR_IRNT.tsv.gz'),'wt') as ptr:
-  rel_phenotypes.to_csv(
+  irnt_rel_phenotypes.to_csv(
     ptr,quoting=csv.QUOTE_NONE,header=True,index=False,sep="\t",na_rep="NA"
   )

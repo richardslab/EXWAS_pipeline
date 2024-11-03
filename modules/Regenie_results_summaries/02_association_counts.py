@@ -159,7 +159,7 @@ if __name__ == "__main__":
     import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/PAST_pipeline_results/intial_runs"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_results_summaries/01_compute_lambda.py"
     print("TEST")
 

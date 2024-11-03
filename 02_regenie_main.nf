@@ -56,7 +56,7 @@ if (wildcard_found[0] && wildcard_found[1]){
 log.info """
               Regenie ExWAS pipeline
 ==================================================
-Run ExWAS burden testing with Regenie
+run ExWAS burden testing with Regenie
 
   # input data
   Input vcf file for generating annotations: ${params.annotation_vcf}
@@ -74,6 +74,7 @@ Run ExWAS burden testing with Regenie
 
 // Regenie input processing
 include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
+
 
 workflow regenie_workflow {
   main:
@@ -103,13 +104,14 @@ workflow regenie_workflow {
     )
 }
 
+
 workflow {
   regenie_workflow()
 }
 
 
 workflow.onComplete{
-  log.info (workflow.success ? '\nDone Regenie!' : '\nPipeline did not complete' )
+  log.info (workflow.success ? '\nDone annotation!' : '\nPipeline did not complete' )
 }
 
 

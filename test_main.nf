@@ -73,34 +73,27 @@ Prepare and run ExWAS gene burden tests from input VCF files
 """
 
 // Regenie input processing
-include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_annotation_summaries; create_annotation_file; create_setlist_file} from "./modules/Regenie_input_preparation"
 
-include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
+process test {
+  /*
+    Simple process to just echo what it got
+  */
+  storeDir "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/test_nextflow_out"
+  input:
+    val x
+    tuple val(a),val(b)
+    
+  output:
+    path "test_${b}.txt"
+
+  script:
+  """
+  echo ${x} ${a} ${b} > test_${b}.txt
+  """
+}
+
 workflow testflow{
-    process test {
-    /*
-      Simple process to just echo what it got
-    */
-    input:
-      val x
-      tuple val(a),val(b)
-      
-    output:
-      stdout
-
-    script:
-    """
-    echo ${x} ${a} ${b}
-    """
-  }
-  process test1{
-    output:
-      stdout
-    script:
-    """
-    echo 'beginning'
-    """
-  }
+  
   Channel.fromPath(params.step2_exwas_genetic).filter{
     file -> file.name.endsWith(".${params.step2_exwas_genetic_file_type}")
   }.map{
@@ -108,35 +101,12 @@ workflow testflow{
   }.set{ regenie_input }
 
   test("X",regenie_input)
-
-  emit:
-  test.out
 }
 
-workflow testflow2{
-  process test2{
-    input:
-      val x
-    output: 
-      stdout
-    script:
-      """
-      echo flow2 ${x}
-      """
-  }
-  take:
-    val
-  main:
-    test2(val)
-
-  emit:
-    test2.out
-}
 
 
 workflow {
   testflow()
-  testflow2(testflow.out) | view { it }
 }
 
 

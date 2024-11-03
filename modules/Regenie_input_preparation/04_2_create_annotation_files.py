@@ -192,7 +192,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr2_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 

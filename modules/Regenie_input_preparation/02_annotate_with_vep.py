@@ -43,7 +43,7 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
   # https://github.com/konradjk/loftee/issues/45
   vep_cmd += [
     '--offline',
-    '--symbol','--coding_only',
+    '--symbol',
     '--no_stats',
     "--compress_output",'bgzip'
   ]
@@ -60,7 +60,8 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
   )
   assert(apptainer_run.returncode == 0),f"Error with VEP"
   print("="*20)
-  
+  print("Finished annotation")
+  print("="*20)
   return
 
 def main():
