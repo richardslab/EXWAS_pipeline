@@ -20,6 +20,8 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 ### General
   * Making conda environment on first run will take some time. As long as the conda cache is not deleted, the environment will not be made again.
   * Step 1 expects 1 set of plink files (bed,bim,fam) for genotyped data (i.e., not separated by chromosome)
+  * As long as the pipeline logs are not deleted, the steps will be skipped
+    * if log is deleted, steps will be re-ran and files will be overwritten.
   
 ### Annotation
   * VCF for generating annotation files are specified separately from the input to run Regenie. 
