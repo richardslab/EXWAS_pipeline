@@ -10,9 +10,9 @@ import seaborn as sns
 
 
 alphamiss_plof = pd.read_csv(
-  "/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/data/Annotation/regenie.anno.file.pLOF.txt",
+  "/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/data/Annotation/annotation_files_used_for_ExWAS/regenie.anno.file.pLOF.missense.txt",
   sep="\t",quoting=csv.QUOTE_NONE,header=None
-).set_axis(['snp','gene','consequence'],axis=1).query("snp.str.startswith('2:')")
+)
 
 pipeline_plof = pd.DataFrame()
 for f in glob.glob("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/regeneron/annotations_wes_qc_chr*_sitesonly.txt"):

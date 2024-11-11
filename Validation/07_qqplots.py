@@ -16,9 +16,18 @@ tfile = os.path.join(tempdir.name,'temp.png')
 
 
 
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/PAST_pipeline_results/validation_10_traits_plof_or_5in5/regeneron/Regenie_S2"
 pipeline_result_files = {
-  "BMI":"8_regenie_S2_OUT_wes_qc_chr*_BMI.regenie.gz"
+  # "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
+  # "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
+  # "Calcium":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_Ca.regenie.gz",
+  "DBP":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_DBP.regenie.gz"
+  # "Glucose":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_glu.regenie.gz",
+  # "Height":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_height.regenie.gz",
+  # "LDL":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_LDL.regenie.gz",
+  # "RBC":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_RBC.regenie.gz",
+  # "SBP":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_SBP.regenie.gz",
+  # "TG":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_TG.regenie.gz"
 }
 for trait in pipeline_result_files.keys():
   all_pipeline_results = glob.glob(os.path.join(pipeline_result_path,pipeline_result_files[trait]))
@@ -26,18 +35,19 @@ for trait in pipeline_result_files.keys():
   for each_f in all_pipeline_results:
     each_res = pd.read_csv(
       os.path.join(pipeline_result_path,each_f),
-      sep=" ",quoting=csv.QUOTE_NONE,comment='#'
-    ).query("TEST == 'ADD'").assign(
-      Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-LR"),
-      Pval = lambda df: df['LOG10P'].apply(lambda val: 10**(-1 * val))
-    )[['ID',"ALLELE1","Models","CHROM",'GENPOS',"ALLELE0","LOG10P","Pval","BETA"]].rename(
+      sep="\t",quoting=csv.QUOTE_NONE,comment='#'
+    ).assign(
+      LOG10P = lambda df: df['Pval'].apply(lambda val: -1 * np.log10(val))
+    )[['Name',"Alt","Model","Chr",'Pos',"Ref","LOG10P","Pval","Effect"]].rename(
       {
-        "ID":"Name_pipeline",
-        "ALLELE1":"Masks",
-        "CHROM":"chromosome",
-        "GENPOS":"position_pipeline",
-        "BETA":"Beta (Pipeline results)",
-        "Pval":"Pval (Pipeline results)"
+        "Name":"Name_pipeline",
+        "Alt":"Masks",
+        "Chr":"chromosome",
+        "Pos":"position_pipeline",
+        "Effect":"Beta (Pipeline results)",
+        "Model":"Models",
+        "Pval":"Pval (Pipeline results)",
+        "LOG10P":"Log10P (Pipeline results)"
       },axis=1
     )
     each_res["Name_pipeline"] = each_res["Name_pipeline"].apply(
@@ -73,11 +83,13 @@ def __makeqq(pvalues,pval_col,m):
 
 # make qq plots
 for m in pipeline_results.Masks.unique():
-  pvalues = pipeline_results.query(f"Masks == '{m}'")['Pval (Pipeline results)'].to_frame()
-  __makeqq(pvalues,'Pval (Pipeline results)',m)
+  __makeqq(
+    pipeline_results.query(f"Masks == '{m}'"),
+    'Pval (Pipeline results)',
+    m)
   input()
 
-backman_gwas_path=pd.read_csv("/home/richards/kevin.liang2/scratch/exwas_pipeline/data/backman_exwas_results/GCST90082670_buildGRCh38.tsv.gz",sep="\t",quoting=csv.QUOTE_NONE)
+backman_gwas_path=pd.read_csv("/home/richards/kevin.liang2/scratch/exwas_pipeline/data/backman_exwas_results/GCST90083131_buildGRCh38.tsv.gz",sep="\t",quoting=csv.QUOTE_NONE)
 for m in backman_gwas_path.effect_allele.unique():
   __makeqq(
     backman_gwas_path.query(f"effect_allele == '{m}'"),

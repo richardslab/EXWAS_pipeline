@@ -14,7 +14,7 @@ from scipy import stats
 tempdir = tempfile.TemporaryDirectory()
 tfile = os.path.join(tempdir.name,'temp.png')
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/validation_regeneron_10_traits"
-ffile = os.path.join(outdir,'beta_beta_alphamissense_plof_or_5in5.pdf')
+ffile = os.path.join(outdir,'pval_pval_alphamissense_plof_or_5in5.pdf')
 plt.rcParams.update(
   {
     "font.size":25
@@ -66,7 +66,7 @@ Alphamissense_masks = {
   'pLOF_and_55missense.001' : "M2_LoF_deleterious.0.001"
 }
 
-cnames = ["Trait","chromosome",'position_Alphamissense','position_pipeline',"Masks","Models","Beta (Alphamissense)","Beta (Pipeline results)","Pval (Alphamissense)","Pval (Pipeline results)","Name_Alphamissense","Name_pipeline"]
+cnames = ["Trait","chromosome",'position_Alphamissense','position_pipeline',"Masks","Models","Beta (Alphamissense)","Beta (Pipeline results)","Pval (Alphamissense)","Pval (Pipeline results)","Name_Alphamissense","Name_pipeline","Log10P (Pipeline results)","Log10P (Alphamissense)"]
 # Compare results
 
 plot_data = pd.DataFrame(
@@ -89,7 +89,8 @@ for trait in pipeline_result_files.keys():
         "CHROM":"chromosome",
         "GENPOS":"position_pipeline",
         "BETA":"Beta (Pipeline results)",
-        "Pval":"Pval (Pipeline results)"
+        "Pval":"Pval (Pipeline results)",
+        "LOG10P":"Log10P (Pipeline results)"
       },axis=1
     )
     each_res["Name_pipeline"] = each_res["Name_pipeline"].apply(
@@ -108,13 +109,14 @@ for trait in pipeline_result_files.keys():
     Masks = lambda df: df['ALLELE1'].map(Alphamissense_masks),
     p_value = lambda df: df['LOG10P'].apply(lambda val: 10**(-1 * val)),
     Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-LR")
-  )[["ID","Masks","CHROM",'GENPOS',"ALLELE1","Models","BETA","p_value"]].rename(
+  )[["ID","Masks","CHROM",'GENPOS',"ALLELE1","Models","BETA","p_value",'LOG10P']].rename(
     {
       "ID":"Name_Alphamissense",
       "CHROM":"chromosome",
       "GENPOS":"position_Alphamissense",
       "BETA":"Beta (Alphamissense)",
-      "p_value":"Pval (Alphamissense)"
+      "p_value":"Pval (Alphamissense)",
+      "LOG10P":"Log10P (Alphamissense)",
     },axis=1
   ).dropna()
   Alphamissense_res["Name_Alphamissense"] = Alphamissense_res["Name_Alphamissense"].apply(
@@ -140,17 +142,17 @@ for trait in pipeline_result_files.keys():
 row_idx = [x%3 for x in list(range(0,3))]
 col_idx = [x%4 for x in list(range(0,4))]
 indicies = [(r,c) for r in row_idx for c in col_idx]
-fig,ax = plt.subplots(3,4,figsize=(20,20))
+fig,ax = plt.subplots(3,4,figsize=(25,20))
 for i,t in enumerate(alphamiss_gwas_files.keys()):
-  trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05")
+  trait_plot = plot_data.query(f"Trait == '{t}'")
   r2 = stats.pearsonr(
-    trait_plot['Beta (Alphamissense)'],
-    trait_plot['Beta (Pipeline results)']
+    trait_plot['Log10P (Alphamissense)'],
+    trait_plot['Log10P (Pipeline results)']
   )
   sns.scatterplot(
     trait_plot,
-    x='Beta (Alphamissense)',
-    y='Beta (Pipeline results)',ax=ax[indicies[i]]
+    x='Log10P (Alphamissense)',
+    y='Log10P (Pipeline results)',ax=ax[indicies[i]]
   )
   ax[indicies[i]].axline(
     (0,0),slope = 1,linestyle='--'
@@ -163,8 +165,8 @@ for i,t in enumerate(alphamiss_gwas_files.keys()):
     }
   )
 
-fig.supxlabel("Alphamissense")
-fig.supylabel("Pipeline results")
+fig.supxlabel(r"$log_{10}(p-value)$ Alphamissense")
+fig.supylabel(r"$log_{10}(p-value)$ Pipeline results")
 fig.savefig(tfile)
 
 

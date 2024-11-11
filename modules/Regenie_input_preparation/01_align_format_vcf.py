@@ -23,63 +23,105 @@ def normalize_vcf(vcf_outfile):
     cargs.input_vcf,
     '-Ou'
   ]
-  bcftool_align_cmd = [
-    CONFIG.bcftools,
-    'norm','-m','-any','--check-ref','w','-f',
-    CONFIG.reference_fasta,
-     '-Ou'
-  ]
-  bcftool_annotate_cmd = [
-    CONFIG.bcftools,
-    'annotate',
-    '--set-id','%CHROM:%POS:%REF:%FIRST_ALT',
-    '-Oz','-o',vcf_outfile
-  ]
-  # print the equivalent bash command to log
-  print("Alignment Command: ")
-  print(
-    f"{' '.join(bcftool_var_only_file_cmd)} | {' '.join(bcftool_align_cmd)} | {' '.join(bcftool_annotate_cmd)}"
-  )
-  print("*"*20)
+  
+  if int(CONFIG.bcftools_param_set_id) == 1:
+    bcftool_align_cmd = [
+      CONFIG.bcftools,
+      'norm','-m','-any','--check-ref','w','-f',
+      CONFIG.reference_fasta,
+      '-Ou'
+    ]
+    bcftool_annotate_cmd = [
+      CONFIG.bcftools,
+      'annotate',
+      '--set-id','%CHROM:%POS:%REF:%FIRST_ALT',
+      '-Oz','-o',vcf_outfile
+    ]
+    # print the equivalent bash command to log
+    print("Alignment Command: ")
+    print(
+      f"{' '.join(bcftool_var_only_file_cmd)} | {' '.join(bcftool_align_cmd)} | {' '.join(bcftool_annotate_cmd)}"
+    )
+    print("*"*20)
 
-  # run the commands and create the file
-  # notes here, I am redirecting stderr directly to terminal because I need to coonsume the bufffer straight. Otherwise, if any fills up, then it deadlocks.
-  # the output streams are always consumed asap asa it is piped to a different commands and the last command the stdout is not captured
+    # run the commands and create the file
+    # notes here, I am redirecting stderr directly to terminal because I need to coonsume the bufffer straight. Otherwise, if any fills up, then it deadlocks.
+    # the output streams are always consumed asap asa it is piped to a different commands and the last command the stdout is not captured
 
-  bcftool_gen_var_only = sp.Popen(
-    bcftool_var_only_file_cmd,
-    stderr = sys.stderr,
-    stdout = sp.PIPE
-  )
-  bcftool_align = sp.Popen(
-      bcftool_align_cmd,
-      stdin=bcftool_gen_var_only.stdout,
-      stdout = sp.PIPE,
+    bcftool_gen_var_only = sp.Popen(
+      bcftool_var_only_file_cmd,
+      stderr = sys.stderr,
+      stdout = sp.PIPE
+    )
+    bcftool_align = sp.Popen(
+        bcftool_align_cmd,
+        stdin=bcftool_gen_var_only.stdout,
+        stdout = sp.PIPE,
+        stderr = sys.stderr
+      )
+    # the are no outputs for this last step so not captured
+    bcftool_annotate = sp.Popen(
+      bcftool_annotate_cmd,
+      stdin = bcftool_align.stdout,
       stderr = sys.stderr
     )
-  # the are no outputs for this last step so not captured
-  bcftool_annotate = sp.Popen(
-    bcftool_annotate_cmd,
-    stdin = bcftool_align.stdout,
-    stderr = sys.stderr
-  )
-  # this means if bctool align is killed, then bcftool_gen_var_only knows no one is reading and will also killed
-  # likewise for subsequent
-  bcftool_gen_var_only.stdout.close()
-  bcftool_align.stdout.close()
+    # this means if bctool align is killed, then bcftool_gen_var_only knows no one is reading and will also killed
+    # likewise for subsequent
+    bcftool_gen_var_only.stdout.close()
+    bcftool_align.stdout.close()
 
-  # wait for all commands to finish before checking return code
-  bcftool_gen_var_only.wait()
-  bcftool_align.wait()
-  bcftool_annotate.wait()
+    # wait for all commands to finish before checking return code
+    bcftool_gen_var_only.wait()
+    bcftool_align.wait()
+    bcftool_annotate.wait()
 
-  assert(
-    bcftool_gen_var_only.returncode == 0 and
-    bcftool_align.returncode == 0 and
-    bcftool_annotate.returncode == 0
-  ),'issue with generating vcf'
+    assert(
+      bcftool_gen_var_only.returncode == 0 and
+      bcftool_align.returncode == 0 and
+      bcftool_annotate.returncode == 0
+    ),'issue with generating vcf'
+    
+    print("="*20)
+  else:
+    bcftool_align_cmd = [
+      CONFIG.bcftools,
+      'norm','-m','-any','--check-ref','w','-f',
+      CONFIG.reference_fasta,
+      '-Oz','-o',vcf_outfile
+    ]
+    print("Alignment Command: ")
+    print(
+      f"{' '.join(bcftool_var_only_file_cmd)} | {' '.join(bcftool_align_cmd)}"
+    )
+    print("*"*20)
+
+    # run the commands and create the file
+    # notes here, I am redirecting stderr directly to terminal because I need to coonsume the bufffer straight. Otherwise, if any fills up, then it deadlocks.
+    # the output streams are always consumed asap asa it is piped to a different commands and the last command the stdout is not captured
+
+    bcftool_gen_var_only = sp.Popen(
+      bcftool_var_only_file_cmd,
+      stderr = sys.stderr,
+      stdout = sp.PIPE
+    )
+    bcftool_align = sp.Popen(
+        bcftool_align_cmd,
+        stdin=bcftool_gen_var_only.stdout,
+        stdout = sp.PIPE,
+        stderr = sys.stderr
+      )
+    bcftool_gen_var_only.stdout.close()
+
+    # wait for all commands to finish before checking return code
+    bcftool_gen_var_only.wait()
+    bcftool_align.wait()
+
+    assert(
+      bcftool_gen_var_only.returncode == 0 and
+      bcftool_align.returncode == 0
+    ),'issue with generating vcf'
+    print("="*20)
   
-  print("="*20)
 
   # index the vcf file with tabix
   tabix_cmd = [

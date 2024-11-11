@@ -73,6 +73,8 @@ def __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx
   line_elem = [x.strip() for x in line.split("\t")]
   variant_id = line_elem[id_idx]
   gene = line_elem[gene_idx]
+  if gene == '-':
+    return None,None
   location = line_elem[location_idx]
   annotation = line_elem[annotation_idx]  
   var_consequence_summaries = parse_vep.parse_var_consequence(annotation,CONSTANT)
@@ -238,6 +240,8 @@ def main():
         if bool(re.match("#",line)):
           continue
         var_consequence_summaries,var_info = __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx)
+        if var_consequence_summaries is None:
+          continue
         for plugin,new_consequence in var_consequence_summaries.items():
           update_info = __get_update_info(cur,plugin,new_consequence,var_info)
           __update_annotation_db(cur,update_info)

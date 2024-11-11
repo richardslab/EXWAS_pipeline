@@ -44,6 +44,7 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
   vep_cmd += [
     '--offline',
     '--symbol',
+    "--stats_text",
     "--compress_output",'bgzip'
   ]
 
