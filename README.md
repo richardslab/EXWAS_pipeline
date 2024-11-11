@@ -70,8 +70,6 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 
 ## stuff to figure out...Ordered from most to least important
 
-**Add validation checks for configuration file format with informative errors**
-
 **simplify config file for specifying masks**
 
 **Create tasks to cleanup output if nextflow process crashes**
