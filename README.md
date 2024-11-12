@@ -63,6 +63,55 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
   * exwas_pipeline.yml: conda environment file to execute the python scripts
   * nextflow_template.config: nextflow configuration
   * proj_config_template.yml: ExWAS configuration yaml files:
+### proj_config_template.yml: specification of study masks
+  * Masks are defined in the "mask_definitions" flag in the form of a python dictionary
+    ```
+    "study_name":{"mask_name":["variant_annotation1","variant_annotation2",...,"variant_annotation3"]}
+    ```
+     * e.g.,:
+        * to specify a study with 2 masks. mask1 includes all pLoF and deleterious variants and mask2 includes only pLoF:
+          ```
+          "studyA":{
+           "mask1":["pLoF","deleterious"],
+           "mask2":["pLoF"]
+          }
+          ```
+  * How variants are annotated based on plugins are defined in the "annotation_definitions" flag in the form of a python dictionary
+    ```
+    "study_name":{
+      "annotation1":{
+        "type":{
+         "plugin1":['plugin1 criteria1','plugin1 criteria2',..,'plugin X criteria X'],
+         'var_consequence':['var_consequence1','var_consequence2',...,'var_consequenceX']
+        }
+      },
+      "annotation2":{...}
+    }
+    ```
+    * 'var_conseqence' is optional. It define what type of variants are considered. For instance, only variants tagged with "missense_variant" by VEP or "missense_variant,3UTR_region" are included. If this flag is omitted, all variants are considered.
+    * 'type': can be either "all", "any", or any numeric value. This specify criteria from how many plugins are required.
+    * For instance. To specify studyA where:
+        * pLoF = VEP HIGH impact. only missense variants considered
+        * deleterious_5in5 based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT where all variants are considered and only if it is annotated as deleterious by all 5 programs one would do.
+      ```
+      "studyA":{
+        "pLoF":{
+          "all":{
+            "IMPACT":["HIGH"]
+           },
+          "var_consequence":["missense_variant"]
+         },
+        "deleterious_5in5":{
+          5:{
+            "LRT_Pred":["D"],
+            "MutationTaster_pred":["A"],
+            "Polyphen2_HDIV":["D"],
+            "Polyphen2_HVAR":["D"],
+            "SIFT_pred":["D"]
+          }
+        }
+      ```
+          
 ## program requirements (paths to be specified in proj_config_template.yml):
   * nextflow >= 23.10.0
   * python 3.10.9
