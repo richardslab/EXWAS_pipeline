@@ -111,7 +111,12 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
           }
         }
       ```
-          
+  * The order of annotation to pick for variants that satisfy multiple annotation criteria is defined in "annotation_order" flag as a form of python dictionary
+    * Notes: Even if there is only 1 annotation, this is required
+    * for instance, to always select "pLoF" before "deleterious_5in5", one would do
+      ```
+      {"studyA":["pLoF","deleterious_5in5"]}
+      ```
 ## program requirements (paths to be specified in proj_config_template.yml):
   * nextflow >= 23.10.0
   * python 3.10.9
