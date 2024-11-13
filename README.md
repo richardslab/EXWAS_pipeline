@@ -34,7 +34,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
   * The plugins that are parsed right now:
      * IMPACT (HC vs LC)
      * LoFtee
-     * CADD
+     * CADD_phred
      * dbNSFP
        * alphamissense_pred
        * EVE_Class25_pred
