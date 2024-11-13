@@ -120,7 +120,9 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
 ## program requirements (paths to be specified in proj_config_template.yml):
   * nextflow >= 23.10.0
   * python 3.10.9
+  * SQLITE3 3.40.1
   * Other required programs (plink, tabix, etc) are listed in proj_config_template.yml
+  * Python packages required will be specified via the CONDA environment
 
 ## stuff to figure out...Ordered from most to least important
 
