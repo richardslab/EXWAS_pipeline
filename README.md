@@ -91,31 +91,42 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
     * 'var_conseqence' is optional. It define what type of variants are considered. For instance, only variants tagged with "missense_variant" by VEP or "missense_variant,3UTR_region" are included. If this flag is omitted, all variants are considered.
     * 'type': can be either "all", "any", or any numeric value. This specify criteria from how many plugins are required.
     * For instance. To specify studyA where:
-        * pLoF = VEP HIGH impact. only missense variants considered
-        * deleterious_5in5 based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT where all variants are considered and only if it is annotated as deleterious by all 5 programs one would do.
+        * pLoF = VEP HIGH impact
+        * deleterious_5in5 based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT. Only if it is annotated as deleterious by all 5 programs. Only missense variants considered. One would do
+        * deleterious_1_or_more based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT. Only if it is annotated as deleterious by all 5 programs. Only missense variants considered. One would do
       ```
       "studyA":{
         "pLoF":{
           "all":{
             "IMPACT":["HIGH"]
-           },
-          "var_consequence":["missense_variant"]
+           }
          },
         "deleterious_5in5":{
-          5:{
+          "all":{
             "LRT_Pred":["D"],
             "MutationTaster_pred":["A"],
             "Polyphen2_HDIV":["D"],
             "Polyphen2_HVAR":["D"],
             "SIFT_pred":["D"]
-          }
+          },
+          "var_consequence":["missense_variant"]
+        },
+      "deleterious_1_or_more":{
+          1:{
+            "LRT_Pred":["D"],
+            "MutationTaster_pred":["A"],
+            "Polyphen2_HDIV":["D"],
+            "Polyphen2_HVAR":["D"],
+            "SIFT_pred":["D"]
+          },
+          "var_consequence":["missense_variant"]
         }
       ```
   * The order of annotation to pick for variants that satisfy multiple annotation criteria is defined in "annotation_order" flag as a form of python dictionary
     * Notes: Even if there is only 1 annotation, this is required
-    * for instance, to always select "pLoF" before "deleterious_5in5", one would do
+    * for instance, to always select "pLoF" before "deleterious_5in5" and "deleterious_5in5" before "deleterious_1_or_more"
       ```
-      {"studyA":["pLoF","deleterious_5in5"]}
+      {"studyA":["pLoF","deleterious_5in5","deleterious_1_or_more"]}
       ```
 ## program requirements (paths to be specified in proj_config_template.yml):
   * nextflow >= 23.10.0
