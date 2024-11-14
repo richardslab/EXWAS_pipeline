@@ -9,7 +9,6 @@ from multiprocessing import Pool,cpu_count
 from functools import partial
 
 def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
-
   files = study_regenie_result_paths[phenotype]
   tmp_lambda_p_values = {}
   for each_file in files:
@@ -19,7 +18,6 @@ def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
         [x in file_cont.columns for x in CONFIG.regenie_expected_columns]
       )
     ),f"Regenie results missing required columns.\nExpected: {','.join(CONFIG.regenie_expected_columns)}\nFound: {','.join(file_cont.columns)}"
-    
     rel_content = file_cont[["Name","Trait","Alt","Model","Pval"]]
     unique_masks = rel_content.Alt.unique().tolist()
     for each_mask in unique_masks:
@@ -44,7 +42,6 @@ def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
 
 def __compute_lambda(each_study):
   study_regenie_result_paths,summary_out = exwas_helpers.__get_study_exwas_paths(WDIR,each_study)
-  
   regenie_lambdas = {}
   phenotypes = list(study_regenie_result_paths.keys())
   with Pool(min(cpu_count(),PROCESSING_THREADS)) as p:
@@ -108,8 +105,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/PAST_pipeline_results/intial_runs"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/transposons_configs/proj_config_transposons.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results_transposon"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_results_summaries/01_compute_lambda.py"
     print("TEST")
 

@@ -12,10 +12,13 @@ import seaborn as sns
 alphamiss_plof = pd.read_csv(
   "/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/data/Annotation/annotation_files_used_for_ExWAS/regenie.anno.file.pLOF.missense.txt",
   sep="\t",quoting=csv.QUOTE_NONE,header=None
-)
+).rename({
+  0:'snp',1:"gene",2:"consequence"
+},axis=1)
+alphamiss_plof = alphamiss_plof.query("consequence !=  'missense.1in5'")
 
 pipeline_plof = pd.DataFrame()
-for f in glob.glob("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results/regeneron/annotations_wes_qc_chr*_sitesonly.txt"):
+for f in glob.glob("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5/regeneron/annotations_wes_qc_chr*_sitesonly.txt"):
   pipeline_chr = pd.read_csv(
     f,
     sep="\t",header=None,quoting=csv.QUOTE_NONE
@@ -36,3 +39,5 @@ len(shared_snps)/len(unique_alphamis_plof)
 
 alphamis_only = set(unique_alphamis_plof).difference(unique_pipeline_plof)
 len(alphamis_only)
+
+alphamiss_plof.query("snp == '8:139732059:C:G'")

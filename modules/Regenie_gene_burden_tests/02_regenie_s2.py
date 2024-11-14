@@ -64,6 +64,11 @@ def _run_regenie_s2_each_study(study):
       s2_cmd += [k,v]
     else:
       assert False, 'invalid Regenie Step 2 value format issue in config file {k} {v}'    
+  # add the --htp flag to get case counts and standardized output format
+  if "--htp" not in CONFIG.s2_params:
+    s2_cmd += [
+      "--htp","htp_results"
+    ]
   s2_cmd += [
     "--pred",os.path.join(regenie_s1_dir,f"7_Regenie_S1_pred.list"),
     "--out",os.path.join(regenie_s2_dir,f"8_regenie_S2_OUT_{VCF_NAME}")

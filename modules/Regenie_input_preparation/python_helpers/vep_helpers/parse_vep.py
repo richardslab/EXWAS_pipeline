@@ -106,6 +106,13 @@ def __parse_IMPACT(consequence,consequence_elem,IMPACT_ORDER):
     ),f"invalid IMPACT results {consequence}"
    return val
 
+def __parse_cadd_phred(consequence,consequence_elem,CADD_PHRED_ORDER):
+   val = float(consequence_elem[1])
+   assert(
+     len(consequence_elem) == 2
+    ),f"invalid CADD_PHRED results {consequence}"
+   return float(val)
+
 def __parse_alphamissense(consequence,consequence_elem,ALPHAMISSENSE_ORDER):
   alpha_preds = [x.upper().strip() for x in consequence_elem[1].split(",")]
   alpha_preds = [x for x in alpha_preds if x!='.']
@@ -121,8 +128,6 @@ def __parse_alphamissense(consequence,consequence_elem,ALPHAMISSENSE_ORDER):
       return i
   assert(False)
 
-def __parse_CADD(consequence_elem):
-  return(float(consequence_elem[1]))
 
 def __parse_eve_class25(consequence,consequence_elem,EVE_CLASS25_ORDER):
   eve_class25_preds = [x.upper().strip() for x in consequence_elem[1].split(',')]
@@ -175,9 +180,6 @@ def parse_var_consequence(annotation,CONST):
     elif consequence_elem[0] == 'AlphaMissense_pred':
       var_consequences['AlphaMissense_pred']=__parse_alphamissense(consequence,consequence_elem,CONST['AlphaMissense_pred'])
 
-    elif consequence_elem[0] == 'CADD_phred':
-      var_consequences['CADD_phred'] = __parse_CADD(consequence_elem)
-
     elif consequence_elem[0] == 'EVE_Class25_pred':
       var_consequences['EVE_Class25_pred'] = __parse_eve_class25(consequence,consequence_elem,CONST['EVE_Class25_pred'])
     
@@ -198,5 +200,8 @@ def parse_var_consequence(annotation,CONST):
     
     elif consequence_elem[0] == 'SIFT_pred':
       var_consequences['SIFT_pred'] = __parse_sift4g_pred(consequence,consequence_elem,CONST['SIFT_pred'])
+
+    elif consequence_elem[0] == 'CADD_PHRED':
+      var_consequences['CADD_PHRED'] = __parse_cadd_phred(consequence,consequence_elem,CONST['CADD_PHRED'])
     
   return var_consequences

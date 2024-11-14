@@ -38,21 +38,34 @@ def __check_build():
   return
 
 
-def  __check_numeric_constant():
-  """make sure the numeric constant values are either higher or lower
+def __check_annotation_criteria():
+  """Make sure the annotation criteria is same as what the plugin expects
   """
-  for k,v in CONFIG.CONST_NUMERIC.items():
-    assert(
-      v in ['higher','lower']
-    ),f"Not 'higher' or 'lower' for Numeric constant plugin {k}"
-  return
+  annotation_def = CONFIG.annotation_definitions
+  all_studies = list(annotation_def.keys())
+  for each_study in all_studies:
+    study_annotation = annotation_def[each_study]
+    all_study_annotations = list(study_annotation.keys())
+    for each_annotation in all_study_annotations:
+      annotation_plugins = study_annotation[each_annotation]
+      for each_criteria,plugin_defs in annotation_plugins.items():
+        for each_plugin,each_def in plugin_defs.items():
+          if each_plugin in CONFIG.CONST_NUMERIC:
+            assert(
+              each_def in ['higher','lower']
+            ),f"{each_plugin}: Unrecognized numeric plugin criteria {each_def}"
+          elif each_plugin in CONFIG.CONST:
+            for t in each_def:
+              assert(
+                t in CONFIG.CONST[each_plugin]
+              ),f"{each_plugin}: Unrecognized plugin criteria {t}"
 
 
 #%%
 def main():
   __check_path_exists()
   __check_build()
-  __check_numeric_constant()
+  __check_annotation_criteria()
 
   print("Configuration file ok")
 
@@ -88,7 +101,7 @@ if __name__ == "__main__":
   if cargs.test == 't':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_or_5in5_configs/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr16_sitesonly.vcf"
     print("TEST")

@@ -13,17 +13,16 @@ from scipy import stats
 
 tempdir = tempfile.TemporaryDirectory()
 tfile = os.path.join(tempdir.name,'temp.png')
-outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/validation_regeneron_10_traits"
-ffile = os.path.join(outdir,'beta_beta_alphamissense_plof_or_5in5.pdf')
+
 plt.rcParams.update(
   {
     "font.size":25
   }
 )
+outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
+ffile_bb = os.path.join(outdir,'beta_beta_alphamissense_plof_or_5in5.pdf')
+ffile_pp = os.path.join(outdir,'pval_pval_alphamissense_plof_or_5in5.pdf')
 
-
-#
-output_dir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/validation_regeneron_10_traits" 
 # downloaded_data_constants
 alphamiss_gwas_path="/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/results/all_regenie_burden_test_res_GWAS_Catalog"
 alphamiss_gwas_files = {
@@ -41,7 +40,7 @@ alphamiss_gwas_files = {
 }
 # own regenie results:
 # own regenie results:
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results_plof_or_5in5/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5/regeneron/Regenie_S2"
 pipeline_result_files = {
   "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
   "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
@@ -61,35 +60,58 @@ Alphamissense_masks = {
   "pLOF_only.singleton" : "M1_LoF.singleton",
   "pLOF_only.01" : "M1_LoF.0.01",
   "pLOF_only.001" : "M1_LoF.0.001",
-  'pLOF_and_55missense.singleton' : "M2_LoF_deleterious.singleton",
-  'pLOF_and_55missense.01' : "M2_LoF_deleterious.0.01",
-  'pLOF_and_55missense.001' : "M2_LoF_deleterious.0.001"
+  'pLOF_and_55missense.singleton' : "M4_LoF_or_deleterious_5_of_5.singleton",
+  'pLOF_and_55missense.01' : "M4_LoF_or_deleterious_5_of_5.0.01",
+  'pLOF_and_55missense.001' : "M4_LoF_or_deleterious_5_of_5.0.001"
 }
 
-cnames = ["Trait","chromosome",'position_Alphamissense','position_pipeline',"Masks","Models","Beta (Alphamissense)","Beta (Pipeline results)","Pval (Alphamissense)","Pval (Pipeline results)","Name_Alphamissense","Name_pipeline"]
+
+
+cnames = [
+  "Trait","chromosome",'position_Alphamissense','position_pipeline',"Masks","Models",
+  "Beta (Alphamissense)","Beta (Pipeline results)",
+  "Pval (Alphamissense)","Pval (Pipeline results)",
+  "LOG10P (Alphamissense)","LOG10P (Pipeline results)",
+  "SE (Alphamissense)","SE (Pipeline results)",
+  "Name_Alphamissense","Name_pipeline"
+]
+
 # Compare results
+def _parse_info(val):
+  res = re.findall("REGENIE_SE=.*?;",val)
+  if len(res) == 1:
+    res = float(res[0].split("=")[1].strip(";"))
+  else:
+    res = None
+  return res
 
 plot_data = pd.DataFrame(
-  columns = cnames
-)
+    columns = cnames
+  )
+
 for trait in pipeline_result_files.keys():
   all_pipeline_results = glob.glob(os.path.join(pipeline_result_path,pipeline_result_files[trait]))
   pipeline_results = pd.DataFrame()
   for each_f in all_pipeline_results:
     each_res = pd.read_csv(
       os.path.join(pipeline_result_path,each_f),
-      sep=" ",quoting=csv.QUOTE_NONE,comment='#'
-    ).assign(
-      Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-LR"),
-      Pval = lambda df: df['LOG10P'].apply(lambda val: 10**(-1 * val))
-    )[['ID',"ALLELE1","Models","CHROM",'GENPOS',"ALLELE0","LOG10P","Pval","BETA"]].rename(
+      sep="\t",quoting=csv.QUOTE_NONE,comment='#'
+    ).query("~Effect.isna()").assign(
+      LOG10P = lambda df: df['Pval'].apply(lambda val: -1 * np.log10(val)),
+      SE = lambda df: df['Info'].apply(
+        lambda val: _parse_info(val)
+      )
+    )[['Name',"Alt","Model","Chr",'Pos',"Ref","Pval","Effect",'LOG10P','SE']].rename(
       {
-        "ID":"Name_pipeline",
-        "ALLELE1":"Masks",
-        "CHROM":"chromosome",
-        "GENPOS":"position_pipeline",
-        "BETA":"Beta (Pipeline results)",
-        "Pval":"Pval (Pipeline results)"
+        "Name":"Name_pipeline",
+        "Alt":"Masks",
+        "Chr":"chromosome",
+        "Pos":"position_pipeline",
+        "Model":"Models",
+        "Effect":"Beta (Pipeline results)",
+        "Pval":"Pval (Pipeline results)",
+        "LOG10P":"LOG10P (Pipeline results)",
+        "SE":"SE (Pipeline results)"
       },axis=1
     )
     each_res["Name_pipeline"] = each_res["Name_pipeline"].apply(
@@ -108,13 +130,15 @@ for trait in pipeline_result_files.keys():
     Masks = lambda df: df['ALLELE1'].map(Alphamissense_masks),
     p_value = lambda df: df['LOG10P'].apply(lambda val: 10**(-1 * val)),
     Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-LR")
-  )[["ID","Masks","CHROM",'GENPOS',"ALLELE1","Models","BETA","p_value"]].rename(
+  )[["ID","Masks","CHROM",'GENPOS',"ALLELE1","Models","BETA","p_value","SE",'LOG10P']].rename(
     {
       "ID":"Name_Alphamissense",
       "CHROM":"chromosome",
       "GENPOS":"position_Alphamissense",
       "BETA":"Beta (Alphamissense)",
-      "p_value":"Pval (Alphamissense)"
+      "p_value":"Pval (Alphamissense)",
+      "SE":"SE (Alphamissense)",
+      "LOG10P":"LOG10P (Alphamissense)"
     },axis=1
   ).dropna()
   Alphamissense_res["Name_Alphamissense"] = Alphamissense_res["Name_Alphamissense"].apply(
@@ -135,37 +159,80 @@ for trait in pipeline_result_files.keys():
     ],axis=0
   ).reset_index(drop=True)
 
+def make_fig(filtered,x,y,title):
+  row_idx = [x%3 for x in list(range(0,3))]
+  col_idx = [x%4 for x in list(range(0,4))]
+  indicies = [(r,c) for r in row_idx for c in col_idx]
+  fig,ax = plt.subplots(3,4,figsize=(30,20))
+  for i,t in enumerate(alphamiss_gwas_files.keys()):
+    if filtered:
+      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05")
+    else:
+      trait_plot = plot_data.query(f"Trait == '{t}'")
+    # get correlation
+    r2 = stats.pearsonr(
+      trait_plot[x],
+      trait_plot[y]
+    )
+    sns.scatterplot(
+      trait_plot,
+      x=x,
+      y=y,ax=ax[indicies[i]]
+    )
+    ax[indicies[i]].axline(
+      (0,0),slope = 1,linestyle='--'
+    )
+    ax[indicies[i]].update(
+      {
+        "xlabel":"",
+        "ylabel":"",
+        "title":f"{t} R2: {np.round(r2.correlation,2)}"
+      }
+    )
+  fig.supxlabel("Alphamissense")
+  fig.supylabel("Pipeline results")
+  fig.suptitle(title)
+  return(fig)
 
-
-row_idx = [x%3 for x in list(range(0,3))]
-col_idx = [x%4 for x in list(range(0,4))]
-indicies = [(r,c) for r in row_idx for c in col_idx]
-fig,ax = plt.subplots(3,4,figsize=(20,20))
-for i,t in enumerate(alphamiss_gwas_files.keys()):
-  trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05")
-  r2 = stats.pearsonr(
-    trait_plot['Beta (Alphamissense)'],
-    trait_plot['Beta (Pipeline results)']
-  )
-  sns.scatterplot(
-    trait_plot,
-    x='Beta (Alphamissense)',
-    y='Beta (Pipeline results)',ax=ax[indicies[i]]
-  )
-  ax[indicies[i]].axline(
-    (0,0),slope = 1,linestyle='--'
-  )
-  ax[indicies[i]].update(
-    {
-      "xlabel":"",
-      "ylabel":"",
-      "title":f"{t} R2: {np.round(r2.correlation,2)}"
-    }
-  )
-
-fig.supxlabel("Alphamissense")
-fig.supylabel("Pipeline results")
+fig = make_fig(
+  filtered = False,
+  x = 'Beta (Alphamissense)',
+  y = "Beta (Pipeline results)",
+  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF OR 5in5)"
+)
 fig.savefig(tfile)
+fig.savefig(f"{ffile_bb}")
+plt.close(fig)
+
+fig = make_fig(
+  filtered = True,
+  x = 'Beta (Alphamissense)',
+  y = "Beta (Pipeline results)",
+  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF OR 5in5)"
+)
+fig.savefig(tfile)
+fig.savefig(f"{ffile_bb}_filtered.pdf")
+plt.close(fig)
+
+# Pval
+fig = make_fig(
+  filtered = False,
+  x = 'LOG10P (Alphamissense)',
+  y = "LOG10P (Pipeline results)",
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF OR 5in5)"
+)
+fig.savefig(tfile)
+fig.savefig(f"{ffile_pp}")
+plt.close(fig)
+
+fig = make_fig(
+  filtered = True,
+  x = 'LOG10P (Alphamissense)',
+  y = "LOG10P (Pipeline results)",
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF OR 5in5)"
+)
+fig.savefig(tfile)
+fig.savefig(f"{ffile_pp}_filtered.pdf")
+plt.close(fig)
 
 
-fig.savefig(ffile)

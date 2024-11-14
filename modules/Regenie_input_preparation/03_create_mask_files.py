@@ -29,6 +29,7 @@ def sanity_checks():
   for study,annotation_information in CONFIG.annotation_definitions.items():
     study_plugins = set()
     for annotation_name,plugin_information in annotation_information.items():
+      plugin_information = {k:v for k,v in plugin_information.items() if k!= 'var_consequence'}
       for criteria,plugin_criteria in plugin_information.items():
         study_plugins = study_plugins.union(set(list(plugin_criteria.keys())))
     plugin_membership = [x in extra_columns for x in study_plugins]

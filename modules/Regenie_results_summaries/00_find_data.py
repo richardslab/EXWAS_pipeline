@@ -18,7 +18,6 @@ def __find_files_per_phenotypes(each_study,unique_phenotypes):
   print(f"Processing {each_study}")
   print("results stored in {summary_out}")
   print("*"*20)
-
   files_per_pheno = {}
   for each_pheno in unique_phenotypes:
     phenotype_files = list(itertools.compress(
@@ -76,8 +75,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/PAST_pipeline_results/intial_runs"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/transposons_configs/proj_config_transposons.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results_transposon"
     print("TEST")
 
 

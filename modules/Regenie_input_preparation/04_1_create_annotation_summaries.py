@@ -19,7 +19,7 @@ def __init_annotation_db(db_file):
     cur = conn.cursor()
     cur.execute(
     """
-      CREATE TABLE vep_summaries(SNP,location,plugin,consequence,gene)
+      CREATE TABLE vep_summaries(SNP,location,plugin,plugin_consequence,gene,var_consequence)
     """
     )
   except Exception as e:
@@ -53,33 +53,36 @@ def __obtain_annotation_file_headers(expected_annotation_file):
           CONFIG.vep_variant_ID in headers and 
           CONFIG.vep_variant_location in headers and 
           CONFIG.vep_gene in headers and 
-          CONFIG.vep_annotations in headers 
+          CONFIG.vep_annotations in headers and
+          CONFIG.vep_var_consequence in headers
         )
         id_idx = headers.index(CONFIG.vep_variant_ID)
         location_idx = headers.index(CONFIG.vep_variant_location)
         gene_idx = headers.index(CONFIG.vep_gene)
         annotation_idx = headers.index(CONFIG.vep_annotations)
+        vep_var_consequence_idx = headers.index(CONFIG.vep_var_consequence)
         continue
       # finished all the headers, didn't find the header line, then there is a problem
       # with the annotation file
       if not re.match("#",line):
-        if (id_idx == None or location_idx == None or gene_idx == None or annotation_idx == None or len(headers) == 0):
+        if (id_idx == None or location_idx == None or gene_idx == None or annotation_idx == None or vep_var_consequence_idx == None or len(headers) == 0):
           assert(False),"did not find header or relevant columns in {expected_annotation_file}"
         else:
           break
-  return n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx
+  return n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx,vep_var_consequence_idx
 
-def __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx):
+def __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx,vep_var_consequence_idx):
   line_elem = [x.strip() for x in line.split("\t")]
   variant_id = line_elem[id_idx]
   gene = line_elem[gene_idx]
+  vep_var_consequence = line_elem[vep_var_consequence_idx]
   if gene == '-':
     return None,None
   location = line_elem[location_idx]
   annotation = line_elem[annotation_idx]  
-  var_consequence_summaries = parse_vep.parse_var_consequence(annotation,CONSTANT)
-  var_info = {"variant_id" : variant_id,"gene":gene,"location":location}
-  return var_consequence_summaries,var_info
+  var_plugin_consequence_summaries = parse_vep.parse_var_consequence(annotation,ALL_CONST)
+  var_info = {"variant_id" : variant_id,"gene":gene,"location":location,"var_consequence":vep_var_consequence}
+  return var_plugin_consequence_summaries,var_info
 
 def __get_update_info(cur,plugin,new_consequence,var_info):
   # based on query
@@ -89,15 +92,16 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
     "SNP":var_info['variant_id'],
     "location":var_info['location'],
     "plugin":None,
-    "consequence":None,
+    "plugin_consequence":None,
     "gene":var_info['gene'],
+    "var_consequence":var_info['var_consequence'],
     "update":False
   }
   query_params={k:var_info[k] for k in ['gene','variant_id']}
   query_params.update({"plugin":plugin})
   gene_var_query = cur.execute(
   """
-    SELECT location,consequence from vep_summaries WHERE gene == :gene AND SNP == :variant_id AND plugin == :plugin
+    SELECT location,plugin_consequence from vep_summaries WHERE gene == :gene AND SNP == :variant_id AND plugin == :plugin
   """,query_params
   )
   gene_vars = gene_var_query.fetchall()
@@ -116,7 +120,7 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
       return update_info
     if gene_vars[query_consequence_idx] == None:
       update_info['plugin'] = plugin
-      update_info['consequence'] = new_consequence
+      update_info['plugin_consequence'] = new_consequence
       update_info['update'] =True
       return update_info
     if plugin in CONSTANT:
@@ -124,20 +128,20 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
       new_consequence_priority = CONSTANT[plugin].index(new_consequence)
       if new_consequence_priority < existing_consequence_priority:
         update_info['plugin'] = plugin
-        update_info['consequence'] = new_consequence
+        update_info['plugin_consequence'] = new_consequence
         update_info['update'] =True
         return update_info
     elif plugin in CONST_NUMERIC:
       if CONST_NUMERIC[plugin] == 'higher':
         if new_consequence > gene_vars[query_consequence_idx]:
           update_info['plugin'] = plugin
-          update_info['consequence'] = new_consequence
+          update_info['plugin_consequence'] = new_consequence
           update_info['update'] =True
           return update_info
       elif CONST_NUMERIC[plugin] == 'lower':
         if new_consequence < gene_vars[query_consequence_idx]:
           update_info['plugin'] = plugin
-          update_info['consequence'] = new_consequence
+          update_info['plugin_consequence'] = new_consequence
           update_info['update'] =True
           return update_info
       else:
@@ -146,24 +150,24 @@ def __get_update_info(cur,plugin,new_consequence,var_info):
       assert(False),f"Unknown plugin type {plugin}"
   else:
     update_info['plugin'] = plugin
-    update_info['consequence'] = new_consequence
+    update_info['plugin_consequence'] = new_consequence
   return update_info
 
 def __update_annotation_db(cur,update_info):
   # constant for indexing database results
   fields_to_update = {k:v for k,v in update_info.items() if v != None}
   # if all fields are new == new entry
-  if not fields_to_update['update'] and 'consequence' in fields_to_update:
+  if not fields_to_update['update'] and 'plugin_consequence' in fields_to_update:
     cur.execute(
       """
-      INSERT INTO vep_summaries VALUES(:SNP,:location,:plugin,:consequence,:gene) 
+      INSERT INTO vep_summaries VALUES(:SNP,:location,:plugin,:plugin_consequence,:gene,:var_consequence) 
       """,fields_to_update
     )
   elif fields_to_update['update']:
-    assert('consequence' in fields_to_update),"what are we updating..."
+    assert('plugin_consequence' in fields_to_update),"what are we updating..."
     cur.execute(
       """
-      UPDATE vep_summaries SET consequence = :consequence WHERE SNP = :SNP AND plugin = :plugin AND gene = :gene AND location = :location
+      UPDATE vep_summaries SET plugin_consequence = :plugin_consequence WHERE SNP = :SNP AND plugin = :plugin AND gene = :gene AND location = :location
       """,fields_to_update
     )
   return
@@ -175,17 +179,17 @@ def __index_db(db_file,reindex=False):
     cur = conn.cursor()
     cur.execute(
     """
-    CREATE UNIQUE INDEX gene_index ON vep_summaries(gene,SNP,plugin,consequence)
+    CREATE UNIQUE INDEX var_index ON vep_summaries(SNP,gene,plugin,plugin_consequence)
     """
     )
     cur.execute(
     """
-    CREATE UNIQUE INDEX plugin_index ON vep_summaries(plugin,consequence,SNP,gene)
+    CREATE UNIQUE INDEX var_consequence ON vep_summaries(var_consequence,SNP,gene,plugin)
     """
     )
     cur.execute(
     """
-    CREATE UNIQUE INDEX var_index ON vep_summaries(SNP,gene,plugin,consequence)
+    CREATE UNIQUE INDEX plugin_var_consequence ON vep_summaries(plugin,plugin_consequence,var_consequence,SNP,gene)
     """
     )
   except sqlite3.OperationalError as e:
@@ -212,12 +216,17 @@ def main():
   __index_db(db_file)
 
   # obtain headers
-  n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx = __obtain_annotation_file_headers(expected_annotation_file)
-  n_rows = sp.run(
+  n_header_rows,headers,id_idx,location_idx,gene_idx,annotation_idx,vep_var_consequence_idx = __obtain_annotation_file_headers(expected_annotation_file)
+  gunzip_cmd = sp.Popen(
     [
-      'wc','-l',expected_annotation_file
-    ],check=True,capture_output=True
+      'gunzip','-c',expected_annotation_file
+    ],stdout=sp.PIPE
+  )
+  n_rows = sp.run(
+    ['wc','-l'],
+    stdin = gunzip_cmd.stdout,check=True,capture_output=True
   ).stdout.decode('utf-8').split()[0]
+  gunzip_cmd.stdout.close()
   n_rows = float(n_rows)
   print(f"{expected_annotation_file} have {n_rows} variants")
   
@@ -239,10 +248,10 @@ def main():
           write_chunks = True
         if bool(re.match("#",line)):
           continue
-        var_consequence_summaries,var_info = __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx)
-        if var_consequence_summaries is None:
+        var_plugin_consequence_summaries,var_info = __get_consequence_summaries(line,id_idx,gene_idx,location_idx,annotation_idx,vep_var_consequence_idx)
+        if var_plugin_consequence_summaries is None:
           continue
-        for plugin,new_consequence in var_consequence_summaries.items():
+        for plugin,new_consequence in var_plugin_consequence_summaries.items():
           update_info = __get_update_info(cur,plugin,new_consequence,var_info)
           __update_annotation_db(cur,update_info)
         # write and index after each
@@ -302,9 +311,9 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr2_sitesonly.vcf"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_or_5in5_configs/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr11_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 
@@ -328,6 +337,9 @@ if __name__ == "__main__":
   WDIR = cargs.wdir
   CONSTANT = CONFIG.CONST
   CONST_NUMERIC = CONFIG.CONST_NUMERIC
+  ALL_CONST = {}
+  ALL_CONST.update(CONSTANT)
+  ALL_CONST.update(CONST_NUMERIC)
   
   sys.path.append(os.path.dirname(__file__))
   from python_helpers.vep_helpers import parse_vep
