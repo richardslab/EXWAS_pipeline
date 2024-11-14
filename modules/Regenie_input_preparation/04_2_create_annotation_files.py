@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 from collections import Counter
 
-def __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria):
+def __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria,vep_summarie_file):
   plugin_criteria_vals = []
   plugin_criteria_query_str = []
   for plugin,plugin_criteria in annotation_def.items():
@@ -84,20 +84,7 @@ def main():
   assert(
     os.path.isfile(vep_summarie_file)
   ),f"missing summary file"
-  try:
-    conn = sqlite3.connect(vep_summarie_file)
-    cur = conn.cursor()
-    n_rows = cur.execute(
-      """
-      SELECT count(*) FROM (SELECT distinct SNP,gene FROM vep_summaries)
-      """
-    ).fetchone()
-    n_rows = float(n_rows[0])
-    conn.close()
-  except Exception as e:
-    print(f"SQLITE3 error fetching pairs: {e}")
-    conn.close()
-    raise
+  
   # Make sure there isn't an annotation file already
   all_studies = list(CONFIG.mask_definitions.keys())
   for study in all_studies:
@@ -118,7 +105,7 @@ def main():
           var_consequence = None
         all_var = []
         for annotation_criteria,annotation_def in all_annotations.items():
-          annotation_var = __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria)
+          annotation_var = __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria,vep_summarie_file)
           all_var += annotation_var
           all_var = list(set(all_var))
         for var in all_var:

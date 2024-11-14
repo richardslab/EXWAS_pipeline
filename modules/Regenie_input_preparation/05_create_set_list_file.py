@@ -20,14 +20,15 @@ def main():
   ),f"missing summary file"
 
 
-  conn = sqlite3.connect(vep_summarie_file)
-  cur = conn.cursor()
   try:
+    conn = sqlite3.connect(vep_summarie_file)
+    cur = conn.cursor()
     genes = cur.execute(
       """
       SELECT distinct gene FROM vep_summaries
       """
     ).fetchall()
+    conn.close()
   except Exception as e:
     print(f"SQLITE3 error: {e}")
     conn.close()
@@ -41,13 +42,22 @@ def main():
     for gene in genes:
       gene = gene[0] # select returns a list of tuples
       try:
+        conn = sqlite3.connect(vep_summarie_file)
+        cur = conn.cursor()
+        genes = cur.execute(
+          """
+          SELECT distinct gene FROM vep_summaries
+          """
+        ).fetchall()
         var_var_location = cur.execute(
           """
           SELECT distinct SNP,location FROM vep_summaries WHERE gene = :gene
           """,{"gene":gene}
-        )
+        ).fetchall()
+        conn.close()
       except Excpetion as e:
         print(f"SQLITE3 error: {e}")
+        conn.close()
         raise
       min_position = None
       gene_chr = None
@@ -79,7 +89,6 @@ def main():
       ptr.write(
         f"{gene}\t{gene_chr}\t{min_position}\t{all_vars_str}\n"
       )
-  conn.close()
 
   return 
 
@@ -112,8 +121,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_configs/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")

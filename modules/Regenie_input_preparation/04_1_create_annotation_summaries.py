@@ -179,12 +179,7 @@ def __index_db(db_file,reindex=False):
     cur = conn.cursor()
     cur.execute(
     """
-    CREATE UNIQUE INDEX var_index ON vep_summaries(SNP,gene,plugin,plugin_consequence)
-    """
-    )
-    cur.execute(
-    """
-    CREATE UNIQUE INDEX var_consequence ON vep_summaries(var_consequence,SNP,gene,plugin)
+    CREATE UNIQUE INDEX gene_idx ON vep_summaries(gene,SNP,location,plugin);
     """
     )
     cur.execute(

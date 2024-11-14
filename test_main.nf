@@ -88,7 +88,7 @@ process test {
 
   script:
   """
-  echo ${x} ${a} ${b} > test_${b}.txt
+  echo "hello" > test_${b}.txt
   """
 }
 
