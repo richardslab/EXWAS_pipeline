@@ -50,7 +50,7 @@ assert (wildcard_found[0] && wildcard_found[1]) || (! wildcard_found[0] && ! wil
 if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Will match annotation VCF with ExWAS input file based on wild card location"
 }else{
-  log_str = "Assumes 1-1 matchign between VCF and ExWAS input"
+  log_str = "Assumes 1-1 matching between VCF and ExWAS input"
 }
 
 log.info """

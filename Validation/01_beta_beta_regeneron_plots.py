@@ -20,8 +20,8 @@ plt.rcParams.update(
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb = os.path.join(outdir,'beta_beta_regeneron_plof_or_5in5.pdf')
-ffile_pp = os.path.join(outdir,'pval_pval_regeneron_plof_or_5in5.pdf')
+ffile_bb = os.path.join(outdir,'beta_beta_regeneron_plof.png')
+ffile_pp = os.path.join(outdir,'pval_pval_regeneron_plof.png')
 
 
 # downloaded_data_constants
@@ -55,13 +55,15 @@ pipeline_result_files = {
 
 backman_masks = {
   "M1.singleton" : "M1_LoF.singleton",
-  "M1.01" : "M1_LoF.0.01",
-  "M1.001" : "M1_LoF.0.001",
-  "M1.0001" : "M1_LoF.0.0001",
+  "M1.0001" : "M1_LoF.1e-05",
+  "M1.001" : "M1_LoF.0.0001",
+  "M1.01" : "M1_LoF",
+  "M1.1" : "M1_LoF.0.01",
   'M3.singleton' : "M4_LoF_or_deleterious_5_of_5.singleton",
-  'M3.01' : "M4_LoF_or_deleterious_5_of_5.0.01",
-  'M3.001' : "M4_LoF_or_deleterious_5_of_5.0.001",
-  'M3.0001' : "M4_LoF_or_deleterious_5_of_5.0.0001"
+  'M3.0001' : "M4_LoF_or_deleterious_5_of_5.1e-05",
+  'M3.001' : "M4_LoF_or_deleterious_5_of_5.0.0001",
+  'M3.01' : "M4_LoF_or_deleterious_5_of_5.0.001",
+  'M3.1' : "M4_LoF_or_deleterious_5_of_5.0.01"
 }
 
 cnames = [
@@ -163,7 +165,7 @@ def make_fig(filtered,x,y,title):
   fig,ax = plt.subplots(2,5,figsize=(30,20))
   for i,t in enumerate(backman_gwas_files.keys()):
     if filtered:
-      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Backman et al 2021)` < 0.05")
+      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Backman et al 2021)` < 0.05 & `Pval (Pipeline results)` < 0.05")
     else:
       trait_plot = plot_data.query(f"Trait == '{t}'")
     # get correlation
@@ -196,7 +198,7 @@ fig = make_fig(
   filtered = False,
   x = 'Beta (Backman et al 2021)',
   y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF OR 5in5)"
+  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF)"
 )
 # fig.savefig(tfile)
 fig.savefig(f"{ffile_bb}")
@@ -206,10 +208,10 @@ fig = make_fig(
   filtered = True,
   x = 'Beta (Backman et al 2021)',
   y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF OR 5in5)"
+  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF)"
 )
 # fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}_filtered.pdf")
+fig.savefig(f"{ffile_bb}_filtered.png")
 plt.close(fig)
 
 # Pval
@@ -217,7 +219,7 @@ fig = make_fig(
   filtered = False,
   x = 'LOG10P (Backman et al 2021)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF OR 5in5)"
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF)"
 )
 # fig.savefig(tfile)
 fig.savefig(f"{ffile_pp}")
@@ -227,10 +229,10 @@ fig = make_fig(
   filtered = True,
   x = 'LOG10P (Backman et al 2021)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF OR 5in5)"
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF)"
 )
 # fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}_filtered.pdf")
+fig.savefig(f"{ffile_pp}_filtered.png")
 plt.close(fig)
 
 

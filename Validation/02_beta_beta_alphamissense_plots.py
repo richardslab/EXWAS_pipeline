@@ -20,8 +20,8 @@ plt.rcParams.update(
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb = os.path.join(outdir,'beta_beta_alphamissense_plof_or_5in5.pdf')
-ffile_pp = os.path.join(outdir,'pval_pval_alphamissense_plof_or_5in5.pdf')
+ffile_bb = os.path.join(outdir,'beta_beta_alphamissense_plof.png')
+ffile_pp = os.path.join(outdir,'pval_pval_alphamissense_plof.png')
 
 # downloaded_data_constants
 alphamiss_gwas_path="/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/results/all_regenie_burden_test_res_GWAS_Catalog"
@@ -40,7 +40,7 @@ alphamiss_gwas_files = {
 }
 # own regenie results:
 # own regenie results:
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof/regeneron/Regenie_S2"
 pipeline_result_files = {
   "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
   "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
@@ -58,11 +58,11 @@ pipeline_result_files = {
 
 Alphamissense_masks = {
   "pLOF_only.singleton" : "M1_LoF.singleton",
-  "pLOF_only.01" : "M1_LoF.0.01",
-  "pLOF_only.001" : "M1_LoF.0.001",
+  "pLOF_only.0.01" : "M1_LoF.0.01",
+  "pLOF_only.0.001" : "M1_LoF.0.001",
   'pLOF_and_55missense.singleton' : "M4_LoF_or_deleterious_5_of_5.singleton",
-  'pLOF_and_55missense.01' : "M4_LoF_or_deleterious_5_of_5.0.01",
-  'pLOF_and_55missense.001' : "M4_LoF_or_deleterious_5_of_5.0.001"
+  'pLOF_and_55missense.0.01' : "M4_LoF_or_deleterious_5_of_5.0.01",
+  'pLOF_and_55missense.0.001' : "M4_LoF_or_deleterious_5_of_5.0.001"
 }
 
 
@@ -166,7 +166,7 @@ def make_fig(filtered,x,y,title):
   fig,ax = plt.subplots(3,4,figsize=(30,20))
   for i,t in enumerate(alphamiss_gwas_files.keys()):
     if filtered:
-      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05")
+      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05 & `Pval (Pipeline results)` < 0.05")
     else:
       trait_plot = plot_data.query(f"Trait == '{t}'")
     # get correlation
@@ -198,9 +198,9 @@ fig = make_fig(
   filtered = False,
   x = 'Beta (Alphamissense)',
   y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF OR 5in5)"
+  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF)"
 )
-fig.savefig(tfile)
+# fig.savefig(tfile)
 fig.savefig(f"{ffile_bb}")
 plt.close(fig)
 
@@ -208,10 +208,10 @@ fig = make_fig(
   filtered = True,
   x = 'Beta (Alphamissense)',
   y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF OR 5in5)"
+  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF)"
 )
-fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}_filtered.pdf")
+# fig.savefig(tfile)
+fig.savefig(f"{ffile_bb}_filtered.png")
 plt.close(fig)
 
 # Pval
@@ -219,7 +219,7 @@ fig = make_fig(
   filtered = False,
   x = 'LOG10P (Alphamissense)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF OR 5in5)"
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF)"
 )
 fig.savefig(tfile)
 fig.savefig(f"{ffile_pp}")
@@ -229,10 +229,10 @@ fig = make_fig(
   filtered = True,
   x = 'LOG10P (Alphamissense)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF OR 5in5)"
+  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF)"
 )
 fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}_filtered.pdf")
+fig.savefig(f"{ffile_pp}_filtered.png")
 plt.close(fig)
 
 

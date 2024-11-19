@@ -47,11 +47,11 @@ backman_gwas_files = {
 
 backman_masks = {
   "M1.singleton" : "pLOF_only.singleton",
-  "M1.01" : "pLOF_only.01",
-  "M1.001" : "pLOF_only.001",
+  "M1.01" : "pLOF_only.0.01",
+  "M1.001" : "pLOF_only.0.001",
   'M3.singleton' : "pLOF_and_55missense.singleton",
-  'M3.01' : "pLOF_and_55missense.01",
-  'M3.001' : "pLOF_and_55missense.001"
+  'M3.01' : "pLOF_and_55missense.0.01",
+  'M3.001' : "pLOF_and_55missense.0.001"
 }
 
 cnames = [
@@ -122,7 +122,6 @@ for trait in alphamiss_gwas_files.keys():
       shared_data[cnames]
     ],axis=0
   ).reset_index(drop=True)
-  
 
 
 
@@ -152,5 +151,5 @@ fig.supylabel("alphamiss")
 fig.savefig(tfile)
 
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb = os.path.join(outdir,'pval_pval_alphamissense_vs_regeneron_plof_or_5in5.pdf')
+ffile_bb = os.path.join(outdir,'pval_pval_alphamissense_vs_regeneron_plof_or_5in5.png')
 fig.savefig(ffile_bb)

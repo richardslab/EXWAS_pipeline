@@ -47,7 +47,7 @@ def __check_annotation_criteria():
     study_annotation = annotation_def[each_study]
     all_study_annotations = list(study_annotation.keys())
     for each_annotation in all_study_annotations:
-      annotation_plugins = study_annotation[each_annotation]
+      annotation_plugins = {k:v for k,v in study_annotation[each_annotation].items() if k != 'var_consequence'}
       for each_criteria,plugin_defs in annotation_plugins.items():
         for each_plugin,each_def in plugin_defs.items():
           if each_plugin in CONFIG.CONST_NUMERIC:
