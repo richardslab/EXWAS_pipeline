@@ -167,7 +167,7 @@ def __update_annotation_db(cur,update_info):
     assert('plugin_consequence' in fields_to_update),"what are we updating..."
     cur.execute(
       """
-      UPDATE vep_summaries SET plugin_consequence = :plugin_consequence WHERE SNP = :SNP AND plugin = :plugin AND gene = :gene AND location = :location
+      UPDATE vep_summaries SET plugin_consequence = :plugin_consequence, var_consequence = :var_consequence WHERE SNP = :SNP AND plugin = :plugin AND gene = :gene AND location = :location
       """,fields_to_update
     )
   return
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_or_5in5_configs/proj_config.yml"
     cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr11_sitesonly.vcf"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr1_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 
