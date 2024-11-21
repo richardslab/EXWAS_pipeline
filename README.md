@@ -1,7 +1,7 @@
 # EXWAS_pipeline
 
-## running it (for now)
-1. put the conda environment file (exwas_pipeline.yml) at the same level as this README.md
+## Getting started
+1. Put the conda environment file (exwas_pipeline.yml) at the same level as this README.md
 2. Fill in nextflow_template.config and proj_config_template.yml
 3. run:
 ```
@@ -16,12 +16,45 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
   * There are paths where you can specify where Nextflow cache so you can put things somewhere else.
     
 
-## Pipeline notes:
-### General
-  * Making conda environment on first run will take some time. As long as the conda cache is not deleted, the environment will not be made again.
-  * Step 1 expects 1 set of plink files (bed,bim,fam) for genotyped data (i.e., not separated by chromosome)
-  * As long as the pipeline logs are not deleted, the steps will be skipped
-    * if log is deleted, steps will be re-ran and files will be overwritten.
+## Pipeline descriptions:
+
+This is a set of python/nextflow scripts that is used to run Gene-based burden testing using Regenie. This pipeline is divided into 2 parts.
+
+**Part 1:**
+This is to annotated all the variants using VEP with plugins specified by the users and generate input files to run Regenie. This includes annotation files, mask files, and the setlist files required.
+
+The apptainer VEP image can be created using the definition files provided. Default is version 105. 
+
+**Part 2:**
+This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects 1 set of plink files of genotyped variants. This step is performed once. Step 2 is per analysis (as specified by the user in the configuration files)
+
+### General Notes
+  * Making conda environment on first run will take time. As long as the conda cache is not deleted, the environment will not be made again.
+  * For all steps in the pipeline, as long as the log files are not deleted, the steps will be skipped.
+    * **Notes** this also means that if the log files are moved from default location or renamed, the steps will be re-ran and files will be overwritten.
+
+#### Input
+**Common inputs**
+ * project configuration yaml file
+ * nextflow configuration file
+   
+**Part 1**
+ * 1 or more VCF files for annotation purposes
+
+**Part 2**
+ * Part 1 outputs
+ * 1 or more genetic dataset for Regenie. Format can be pgen, bgen, or bed (same as what Regenie takes)
+
+#### Output
+**Part 1**
+ * sites only VCF for each VCF files provided
+ * VEP annotation output and summary information
+ * Summarized output results in an indexed SQL database
+ * Mask files, annotation files, and setlist files for each analysis specified by the user
+   
+**Part 2**
+ * Regenie S1 output
+ * Regenie S2 output
   
 ### Annotation
   * VCF for generating annotation files are specified separately from the input to run Regenie. 
@@ -32,11 +65,12 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
     * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep installed.
       * Have to download everything, then specify these location in *proj_config_template.yml*
   * The plugins that are parsed right now:
-     * IMPACT (HC vs LC)
+     * IMPACT
      * LoFtee
-     * CADD_phred
+     * REVEL
      * dbNSFP
        * alphamissense_pred
+       * CADD_phred
        * EVE_Class25_pred
        * LRT_pred
        * MutationTaster_pred
@@ -104,7 +138,7 @@ OR edit run_nextflow_template.sh with proper in/out directories for nextflow. th
         "deleterious_5in5":{
           "all":{
             "LRT_Pred":["D"],
-            "MutationTaster_pred":["A"],
+            "MutationTaster_pred":["A","D"],
             "Polyphen2_HDIV":["D"],
             "Polyphen2_HVAR":["D"],
             "SIFT_pred":["D"]
