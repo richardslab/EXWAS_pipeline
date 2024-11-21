@@ -65,11 +65,12 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
     * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep installed.
       * Have to download everything, then specify these location in *proj_config_template.yml*
   * The plugins that are parsed right now:
-     * IMPACT (HC vs LC)
+     * IMPACT
      * LoFtee
-     * CADD_phred
+     * REVEL
      * dbNSFP
        * alphamissense_pred
+       * CADD_phred
        * EVE_Class25_pred
        * LRT_pred
        * MutationTaster_pred
@@ -137,7 +138,7 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
         "deleterious_5in5":{
           "all":{
             "LRT_Pred":["D"],
-            "MutationTaster_pred":["A"],
+            "MutationTaster_pred":["A","D"],
             "Polyphen2_HDIV":["D"],
             "Polyphen2_HVAR":["D"],
             "SIFT_pred":["D"]
