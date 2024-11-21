@@ -44,11 +44,6 @@ def main():
       try:
         conn = sqlite3.connect(vep_summarie_file)
         cur = conn.cursor()
-        genes = cur.execute(
-          """
-          SELECT distinct gene FROM vep_summaries
-          """
-        ).fetchall()
         var_var_location = cur.execute(
           """
           SELECT distinct SNP,location FROM vep_summaries WHERE gene = :gene

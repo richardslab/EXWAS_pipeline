@@ -21,16 +21,16 @@ def __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria,v
       plugin_criteria_vals += plugin_criteria
     elif plugin in CONFIG.CONST_NUMERIC:
       threshold = float(re.sub(">|>=|<|<=","",plugin_criteria))
-      if re.match("^<[0-9]+",annotation_def):
+      if re.match("^<[0-9]+",plugin_criteria):
         plugin_criteria_query_str += ["plugin = ? AND  plugin_consequence < ?"]
         plugin_criteria_vals+=[plugin,threshold]
-      elif re.match("^<=[0-9]+",annotation_def):
+      elif re.match("^<=[0-9]+",plugin_criteria):
         plugin_criteria_query_str += ["plugin = ? AND  plugin_consequence <= ?"]
         plugin_criteria_vals+=[plugin,threshold]
-      elif re.match("^>[0-9]+",annotation_def):
+      elif re.match("^>[0-9]+",plugin_criteria):
         plugin_criteria_query_str += ["plugin = ? AND  plugin_consequence > ?"]
         plugin_criteria_vals+=[plugin,threshold]
-      elif re.match("^>=[0-9]+",annotation_def):
+      elif re.match("^>=[0-9]+",plugin_criteria):
         plugin_criteria_query_str += ["plugin = ? AND  plugin_consequence >= ?"]
         plugin_criteria_vals+=[plugin,threshold]
   plugin_criteria_query_str = " OR ".join([f"({x})" for x in plugin_criteria_query_str])
@@ -143,8 +143,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_or_5in5_configs/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr21_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")

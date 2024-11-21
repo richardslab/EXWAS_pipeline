@@ -113,6 +113,13 @@ def __parse_cadd_phred(consequence,consequence_elem,CADD_PHRED_ORDER):
     ),f"invalid CADD_PHRED results {consequence}"
    return float(val)
 
+def __parse_revel(consequence,consequence_elem,REVEL_ORDER):
+   val = float(consequence_elem[1])
+   assert(
+     len(consequence_elem) == 2
+    ),f"invalid REVEL results {consequence}"
+   return float(val)
+
 def __parse_alphamissense(consequence,consequence_elem,ALPHAMISSENSE_ORDER):
   alpha_preds = [x.upper().strip() for x in consequence_elem[1].split(",")]
   alpha_preds = [x for x in alpha_preds if x!='.']
@@ -203,5 +210,8 @@ def parse_var_consequence(annotation,CONST):
 
     elif consequence_elem[0] == 'CADD_PHRED':
       var_consequences['CADD_PHRED'] = __parse_cadd_phred(consequence,consequence_elem,CONST['CADD_PHRED'])
+
+    elif consequence_elem[0] == 'REVEL':
+      var_consequences['REVEL'] = __parse_revel(consequence,consequence_elem,CONST['REVEL'])
     
   return var_consequences

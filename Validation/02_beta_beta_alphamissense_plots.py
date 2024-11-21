@@ -39,7 +39,6 @@ alphamiss_gwas_files = {
   "WHR":"step_2_IRNT_WHR_ExWAS_pLOF_missense_IRNT_WHR.regenie"
 }
 # own regenie results:
-# own regenie results:
 pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof/regeneron/Regenie_S2"
 pipeline_result_files = {
   "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
@@ -200,7 +199,7 @@ fig = make_fig(
   y = "Beta (Pipeline results)",
   title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF)"
 )
-# fig.savefig(tfile)
+fig.savefig(tfile)
 fig.savefig(f"{ffile_bb}")
 plt.close(fig)
 

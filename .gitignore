@@ -41,7 +41,7 @@
 
 # renv files (except for renv.lock)
 /renv/
-
+*renv*
 # Session Data files
 .RData
 

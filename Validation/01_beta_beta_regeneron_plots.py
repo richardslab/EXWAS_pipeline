@@ -39,7 +39,7 @@ backman_gwas_files = {
   "TG":"GCST90083030_buildGRCh38.tsv.gz"
 }
 # own regenie results:
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof/regeneron/Regenie_S2"
 pipeline_result_files = {
   "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
   "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
@@ -200,18 +200,8 @@ fig = make_fig(
   y = "Beta (Pipeline results)",
   title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF)"
 )
-# fig.savefig(tfile)
+fig.savefig(tfile)
 fig.savefig(f"{ffile_bb}")
-plt.close(fig)
-
-fig = make_fig(
-  filtered = True,
-  x = 'Beta (Backman et al 2021)',
-  y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF)"
-)
-# fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}_filtered.png")
 plt.close(fig)
 
 # Pval
@@ -221,19 +211,6 @@ fig = make_fig(
   y = "LOG10P (Pipeline results)",
   title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF)"
 )
-# fig.savefig(tfile)
+fig.savefig(tfile)
 fig.savefig(f"{ffile_pp}")
 plt.close(fig)
-
-fig = make_fig(
-  filtered = True,
-  x = 'LOG10P (Backman et al 2021)',
-  y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF)"
-)
-# fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}_filtered.png")
-plt.close(fig)
-
-
-

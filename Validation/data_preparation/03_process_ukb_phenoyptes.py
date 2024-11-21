@@ -30,7 +30,7 @@ import numpy as np
 from scipy import stats
 
 # inputs
-input_file = "/home/richards/kevin.liang2/scratch/exwas_pipeline/data/UKB_phenotypes/UKB_phenotype/UKB_continuous_trait_Nov232023_participant.csv"
+input_file = "/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/data/UKB_phenotype/UKB_continuous_trait_Nov232023_participant.csv"
 eur_individuals="/project/richards/guillaume.butler-laporte/ukb_covid_gwas/anc/ukb.eurFIDIIDPCA.txt"
 # outputs
 output_dir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/processed_UKB_phenotypes"
@@ -81,15 +81,11 @@ rel_phenotypes = raw_phenotypes[["FID","IID",'SBP','DBP','Standing_height','LDL'
 # IRNT transform all the columns
 phenotype_cols = ['SBP','DBP','Standing_height','LDL',"TG","Calcium","Dbilirubin","Glucose","RBC","BMI"]
 def irnt(pheno_series):
-  """Performs Inverse Rank Normal Transformation
-  
+  """Performs Inverse Rank Normal Transformation  
   Based on: https://cran.r-project.org/web/packages/RNOmni/vignettes/RNOmni.html#inverse-normal-transformation
-
-  essentially: PPF((rank-0.5)/n).
-
+  essentially: PPF((rank-0.5)/n)
   Args:
       pheno_series (pandas series): series of value
-
   Returns:
       numpy array: an array of IRNT values
   """
@@ -97,6 +93,7 @@ def irnt(pheno_series):
   rank_transformed = (val_ranks-0.5)/(np.sum(~pheno_series.isna()))
   irnt_values = stats.norm.ppf(rank_transformed)
   return irnt_values
+
 irnt_rel_phenotypes = rel_phenotypes.copy()
 irnt_rel_phenotypes[phenotype_cols] = irnt_rel_phenotypes[phenotype_cols].apply(
   lambda col: irnt(col),
@@ -106,6 +103,11 @@ irnt_rel_phenotypes[phenotype_cols] = irnt_rel_phenotypes[phenotype_cols].apply(
 
 
 with gzip.open(os.path.join(output_dir,'UKB_phenotypes_renamed_columns_EUR_IRNT.tsv.gz'),'wt') as ptr:
+  irnt_rel_phenotypes.to_csv(
+    ptr,quoting=csv.QUOTE_NONE,header=True,index=False,sep="\t",na_rep="NA"
+  )
+
+with gzip.open(os.path.join(output_dir,'UKB_phenotypes_renamed_columns_EUR.tsv.gz'),'wt') as ptr:
   irnt_rel_phenotypes.to_csv(
     ptr,quoting=csv.QUOTE_NONE,header=True,index=False,sep="\t",na_rep="NA"
   )
