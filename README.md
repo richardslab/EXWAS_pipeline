@@ -92,6 +92,9 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
   * the wildcard character can stand-in for 1 or more alphanumeric symbols.
 ### For nextflow_template.config and proj_config_template.yml:
  * Any flags and values meant for Regenie (i.e., anything in *s1_params* and *s2_params* from the proj_config_template.yml) will be passed directly to Regenie so the flag names and the values have to be what it expects based on [Regenie documentation](https://rgcgithub.github.io/regenie/options/)
+### alignment of VCF
+ * by default, after left alignment, ids are noted as chr:pos:ref:alt using BCFtools. If the supplied files do not use these ids, then there will be problem.
+   * to avoid: set *bcftools_param_set_id* to 0 to retain original variant IDs in the VCF files.
 
 ## Configuration files
   * exwas_pipeline.yml: conda environment file to execute the python scripts
