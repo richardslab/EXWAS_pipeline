@@ -33,7 +33,7 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
   * For all steps in the pipeline, as long as the log files are not deleted, the steps will be skipped.
     * **Notes** this also means that if the log files are moved from default location or renamed, the steps will be re-ran and files will be overwritten.
   * Remember to set this flag to *bcftools_param_set_id* 0 to use the original IDs in the VCF file.
-    * if set to 1, then the annotation files will be using the modified SNP id that is chr:pos:ref:alt. Needs to take extra step to ensure this modified ID matches your ExWAS input data if using this flag.
+    * if set to 1, then the annotation files will be using the modified SNP id that is chr:pos:ref:alt **after left alignment**. Needs to take extra step to ensure this modified ID matches your ExWAS input data if using this flag.
 
 #### Input
 **Common inputs**
