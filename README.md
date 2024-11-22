@@ -32,6 +32,8 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
   * Making conda environment on first run will take time. As long as the conda cache is not deleted, the environment will not be made again.
   * For all steps in the pipeline, as long as the log files are not deleted, the steps will be skipped.
     * **Notes** this also means that if the log files are moved from default location or renamed, the steps will be re-ran and files will be overwritten.
+  * Remember to set this flag to *bcftools_param_set_id* 0 to use the original IDs in the VCF file.
+    * if set to 1, then the annotation files will be using the modified SNP id that is chr:pos:ref:alt. Needs to take extra step to ensure this modified ID matches your ExWAS input data if using this flag.
 
 #### Input
 **Common inputs**
@@ -92,9 +94,7 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
   * the wildcard character can stand-in for 1 or more alphanumeric symbols.
 ### For nextflow_template.config and proj_config_template.yml:
  * Any flags and values meant for Regenie (i.e., anything in *s1_params* and *s2_params* from the proj_config_template.yml) will be passed directly to Regenie so the flag names and the values have to be what it expects based on [Regenie documentation](https://rgcgithub.github.io/regenie/options/)
-### alignment of VCF
- * by default, after left alignment, ids are noted as chr:pos:ref:alt using BCFtools. If the supplied files do not use these ids, then there will be problem.
-   * to avoid: set *bcftools_param_set_id* to 0 to retain original variant IDs in the VCF files.
+
 
 ## Configuration files
   * exwas_pipeline.yml: conda environment file to execute the python scripts
