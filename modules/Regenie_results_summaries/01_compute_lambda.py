@@ -9,6 +9,21 @@ from multiprocessing import Pool,cpu_count
 from functools import partial
 
 def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
+  """Compute genomic inflation factor for each phenotype
+
+  Will compute the genomic inflation factor across all chromosomes per phenotype per masks per model.
+
+  Expect output columns from Regenie --htp flag.
+
+  Genomic inflation factor computed as 
+    median(observed chisq stat)/(median chisq stat with df = 1)
+      * ratio of median of the test statistics
+    
+  Args:
+      study_regenie_result_paths (str): path to the regenie results. Obtained from 00_find_data.py
+      phenotype (str): Phenotype name
+
+  """
   files = study_regenie_result_paths[phenotype]
   tmp_lambda_p_values = {}
   for each_file in files:
@@ -105,8 +120,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/transposons_configs/proj_config_transposons.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results_transposon"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_results_summaries/01_compute_lambda.py"
     print("TEST")
 

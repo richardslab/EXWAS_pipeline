@@ -15,13 +15,23 @@ from collections import namedtuple
 from multiprocessing import Pool,cpu_count
 from functools import partial
 
-def __get_counts_per_study(study_regenie_result_paths,phenotype):
+def __get_counts_per_study(study_regenie_result_paths,n_phenos,phenotype):
+  """Obtain the counts for each phenotype in each study.
+  
+  Study-wide Bonferroni threshold is use assuming 20_000 genes.
+    * Bonferroni threshold = 0.05/20_000/N masks/N models/N phenotypes
+
+  Args:
+      study_regenie_result_paths (str): path to results. Obtained from 00_find_data.py
+      phenotype (str): phenotype name
+  """
   files = study_regenie_result_paths[phenotype]
   # obtain all the exwas results into a dataframe
-  # but keep only those with p-value < 2.5e-6
-  # # this is because it is the maximum p-value allowable for bonferroni assuming 20_000 genes
+  # but keep only those with p-value < 0.05/20_000/n_phenos
+  # # this is because it is the maximum p-value allowable for bonferroni assuming 20_000 genes tested across n phenotypes
   # # this would be bonferroni of 1 mask, 1 burden test, 1 allele frequency.
-  max_p_value = 2.5e-6
+  # # smaller dataframe -> so faster processing time.
+  max_p_value = 0.05/20_000/n_phenos
   relevant_exwas = pd.DataFrame()
   # keeps track of number of masks and models to do multiple testing correction
   # Notes:
@@ -44,7 +54,7 @@ def __get_counts_per_study(study_regenie_result_paths,phenotype):
         res.query("Pval <= @max_p_value")
       ],axis=0
     ).reset_index(drop=True)
-  study_specific_bonferroni = max_p_value/len(masks)/len(models)
+  study_specific_bonferroni = max_p_value/len(masks)/len(models)/n_phenos
   study_counts = pd.DataFrame(
     columns = [
       "Phenotype","Mask","Model","Number of Exome-wide significant hits",
@@ -90,11 +100,18 @@ def __get_counts_per_study(study_regenie_result_paths,phenotype):
   return study_counts
 
 def get_counts(each_study):
+  """Obtain counts for each study.
+
+  Phenotypes are processed in parallele.
+
+  Args:
+      each_study (str): study name specified in configuration file.
+  """
   study_regenie_result_paths,summary_out = exwas_helpers.__get_study_exwas_paths(WDIR,each_study)
   phenotypes = list(study_regenie_result_paths.keys())
   with Pool(PROCESSING_THREADS) as p:
     all_res = p.map(
-      partial(__get_counts_per_study,study_regenie_result_paths),
+      partial(__get_counts_per_study,study_regenie_result_paths,len(phenotypes)),
       phenotypes
     )
   result_counts  = pd.DataFrame()
@@ -125,7 +142,6 @@ def get_counts(each_study):
 
 def main():
   studies = list(CONFIG.mask_definitions.keys())
-  unique_phenotypes = CONFIG.s2_params['--phenoCol'].split(",")
   for each_study in studies:
     get_counts(each_study)
   
@@ -158,8 +174,8 @@ if __name__ == "__main__":
   if cargs.test =='t':
     import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/pipeline_results"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_results_summaries/01_compute_lambda.py"
     print("TEST")
 

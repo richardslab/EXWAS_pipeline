@@ -111,7 +111,7 @@ workflow {
 
 
 workflow.onComplete{
-  log.info (workflow.success ? '\nDone annotation!' : '\nPipeline did not complete' )
+  log.info (workflow.success ? '\nDone ExWAS!' : '\nPipeline did not complete' )
 }
 
 

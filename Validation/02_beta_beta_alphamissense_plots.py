@@ -68,10 +68,10 @@ Alphamissense_masks = {
 
 cnames = [
   "Trait","chromosome",'position_Alphamissense','position_pipeline',"Masks","Models",
-  "Beta (Alphamissense)","Beta (Pipeline results)",
-  "Pval (Alphamissense)","Pval (Pipeline results)",
-  "LOG10P (Alphamissense)","LOG10P (Pipeline results)",
-  "SE (Alphamissense)","SE (Pipeline results)",
+  "Beta (Chen et al 2024)","Beta (Pipeline results)",
+  "Pval (Chen et al 2024)","Pval (Pipeline results)",
+  "LOG10P (Chen et al 2024)","LOG10P (Pipeline results)",
+  "SE (Chen et al 2024)","SE (Pipeline results)",
   "Name_Alphamissense","Name_pipeline"
 ]
 
@@ -134,10 +134,10 @@ for trait in pipeline_result_files.keys():
       "ID":"Name_Alphamissense",
       "CHROM":"chromosome",
       "GENPOS":"position_Alphamissense",
-      "BETA":"Beta (Alphamissense)",
-      "p_value":"Pval (Alphamissense)",
-      "SE":"SE (Alphamissense)",
-      "LOG10P":"LOG10P (Alphamissense)"
+      "BETA":"Beta (Chen et al 2024)",
+      "p_value":"Pval (Chen et al 2024)",
+      "SE":"SE (Chen et al 2024)",
+      "LOG10P":"LOG10P (Chen et al 2024)"
     },axis=1
   ).dropna()
   Alphamissense_res["Name_Alphamissense"] = Alphamissense_res["Name_Alphamissense"].apply(
@@ -158,16 +158,16 @@ for trait in pipeline_result_files.keys():
     ],axis=0
   ).reset_index(drop=True)
 
-def make_fig(filtered,x,y,title):
-  row_idx = [x%3 for x in list(range(0,3))]
-  col_idx = [x%4 for x in list(range(0,4))]
+def make_fig(plot_data,x,y,title):
+  row_idx = [x%2 for x in list(range(0,2))]
+  col_idx = [x%5 for x in list(range(0,5))]
   indicies = [(r,c) for r in row_idx for c in col_idx]
-  fig,ax = plt.subplots(3,4,figsize=(30,20))
-  for i,t in enumerate(alphamiss_gwas_files.keys()):
-    if filtered:
-      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Alphamissense)` < 0.05 & `Pval (Pipeline results)` < 0.05")
-    else:
-      trait_plot = plot_data.query(f"Trait == '{t}'")
+  fig,ax = plt.subplots(2,5,figsize=(30,15))
+  for i,t in enumerate(backman_gwas_files.keys()):
+    trait_plot = plot_data.query(f"Trait == '{t}'")
+    min_scale = max(0,math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5)
+    max_scale = math.ceil(max(trait_plot[x].max(),trait_plot[y].max())) + 5
+    scale = [math.ceil(x) - math.ceil(x)%5 for x in np.linspace(min_scale,max_scale,5)]
     # get correlation
     r2 = stats.pearsonr(
       trait_plot[x],
@@ -185,53 +185,38 @@ def make_fig(filtered,x,y,title):
       {
         "xlabel":"",
         "ylabel":"",
-        "title":f"{t} R2: {np.round(r2.correlation,2)}"
+        "title":rf"{t} $R^2$: {np.round(r2.correlation,2)}"
       }
     )
-  fig.supxlabel("Alphamissense")
+    ax[indicies[i]].set_xticks(scale)
+    ax[indicies[i]].set_yticks(scale)
+    ax[indicies[i]].set_xlim(min_scale,max_scale)
+    ax[indicies[i]].set_ylim(min_scale,max_scale)
+  fig.supxlabel("Chen et al 2024")
   fig.supylabel("Pipeline results")
   fig.suptitle(title)
   return(fig)
 
-fig = make_fig(
-  filtered = False,
-  x = 'Beta (Alphamissense)',
-  y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF)"
-)
-fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}")
-plt.close(fig)
-
-fig = make_fig(
-  filtered = True,
-  x = 'Beta (Alphamissense)',
-  y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Alphamissense (pLoF)"
-)
-# fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}_filtered.png")
-plt.close(fig)
-
-# Pval
-fig = make_fig(
-  filtered = False,
-  x = 'LOG10P (Alphamissense)',
+# Pval plof
+fig_plof = make_fig(
+  plot_data=plot_data.query("Masks.str.startswith('M1_LoF')"),
+  x = 'LOG10P (Chen et al 2024)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF)"
+  title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nChen et al 2024 (pLoF)"
 )
-fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}")
-plt.close(fig)
+fig_plof.savefig(tfile)
+fig_plof.savefig(f"{ffile_pp_plof}")
+plt.close(fig_plof)
 
-fig = make_fig(
-  filtered = True,
-  x = 'LOG10P (Alphamissense)',
+# Pval plof or 5in5
+fig_plof = make_fig(
+  plot_data=plot_data.query("Masks.str.startswith('M3_LoF_or')"),
+  x = 'LOG10P (Chen et al 2024)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Alphamissense (pLoF)"
+  title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nChen et al 2024 (pLoF or deleterious 5 in 5)"
 )
-fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}_filtered.png")
-plt.close(fig)
+fig_plof.savefig(tfile)
+fig_plof.savefig(f"{ffile_pp_plof_5in5}")
+plt.close(fig_plof)
 
 

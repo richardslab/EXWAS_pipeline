@@ -3,7 +3,7 @@
 """
 #%%
 
-import os,shutil,yaml,pickle,re,glob,csv,gzip
+import os,shutil,yaml,pickle,re,glob,csv,gzip,math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,8 +20,11 @@ plt.rcParams.update(
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb = os.path.join(outdir,'beta_beta_regeneron_plof.png')
-ffile_pp = os.path.join(outdir,'pval_pval_regeneron_plof.png')
+ffile_bb_plof = os.path.join(outdir,'beta_beta_regeneron_plof.png')
+ffile_pp_plof = os.path.join(outdir,'pval_pval_regeneron_plof.png')
+
+ffile_bb_plof_5i5n = os.path.join(outdir,'beta_beta_regeneron_plof_or_5in5.png')
+ffile_pp_plof_5in5 = os.path.join(outdir,'pval_pval_regeneron_plof_or_5in5.png')
 
 
 # downloaded_data_constants
@@ -39,7 +42,7 @@ backman_gwas_files = {
   "TG":"GCST90083030_buildGRCh38.tsv.gz"
 }
 # own regenie results:
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/regeneron_exact/regeneron/Regenie_S2"
 pipeline_result_files = {
   "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
   "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
@@ -59,11 +62,11 @@ backman_masks = {
   "M1.001" : "M1_LoF.0.0001",
   "M1.01" : "M1_LoF",
   "M1.1" : "M1_LoF.0.01",
-  'M3.singleton' : "M4_LoF_or_deleterious_5_of_5.singleton",
-  'M3.0001' : "M4_LoF_or_deleterious_5_of_5.1e-05",
-  'M3.001' : "M4_LoF_or_deleterious_5_of_5.0.0001",
-  'M3.01' : "M4_LoF_or_deleterious_5_of_5.0.001",
-  'M3.1' : "M4_LoF_or_deleterious_5_of_5.0.01"
+  'M3.singleton' : "M3_LoF_or_deleterious_5_of_5.singleton",
+  'M3.0001' : "M3_LoF_or_deleterious_5_of_5.1e-05",
+  'M3.001' : "M3_LoF_or_deleterious_5_of_5.0.0001",
+  'M3.01' : "M3_LoF_or_deleterious_5_of_5.0.001",
+  'M3.1' : "M3_LoF_or_deleterious_5_of_5.0.01"
 }
 
 cnames = [
@@ -158,16 +161,16 @@ for trait in pipeline_result_files.keys():
 
 
 
-def make_fig(filtered,x,y,title):
+def make_fig(plot_data,x,y,title):
   row_idx = [x%2 for x in list(range(0,2))]
   col_idx = [x%5 for x in list(range(0,5))]
   indicies = [(r,c) for r in row_idx for c in col_idx]
-  fig,ax = plt.subplots(2,5,figsize=(30,20))
+  fig,ax = plt.subplots(2,5,figsize=(30,15))
   for i,t in enumerate(backman_gwas_files.keys()):
-    if filtered:
-      trait_plot = plot_data.query(f"Trait == '{t}' & `Pval (Backman et al 2021)` < 0.05 & `Pval (Pipeline results)` < 0.05")
-    else:
-      trait_plot = plot_data.query(f"Trait == '{t}'")
+    trait_plot = plot_data.query(f"Trait == '{t}'")
+    min_scale = max(0,math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5)
+    max_scale = math.ceil(max(trait_plot[x].max(),trait_plot[y].max())) + 5
+    scale = [math.ceil(x) - math.ceil(x)%5 for x in np.linspace(min_scale,max_scale,5)]
     # get correlation
     r2 = stats.pearsonr(
       trait_plot[x],
@@ -185,32 +188,36 @@ def make_fig(filtered,x,y,title):
       {
         "xlabel":"",
         "ylabel":"",
-        "title":f"{t} R2: {np.round(r2.correlation,2)}"
+        "title":rf"{t} $R^2$: {np.round(r2.correlation,2)}"
       }
     )
+    ax[indicies[i]].set_xticks(scale)
+    ax[indicies[i]].set_yticks(scale)
+    ax[indicies[i]].set_xlim(min_scale,max_scale)
+    ax[indicies[i]].set_ylim(min_scale,max_scale)
   fig.supxlabel("Backman et al 2021")
   fig.supylabel("Pipeline results")
   fig.suptitle(title)
   return(fig)
 
-## Beta-beta plots
-fig = make_fig(
-  filtered = False,
-  x = 'Beta (Backman et al 2021)',
-  y = "Beta (Pipeline results)",
-  title = r"$\beta$ - $\beta$ plots Backman et al 2021 (pLoF)"
-)
-fig.savefig(tfile)
-fig.savefig(f"{ffile_bb}")
-plt.close(fig)
-
-# Pval
-fig = make_fig(
-  filtered = False,
+# Pval plof
+fig_plof = make_fig(
+  plot_data=plot_data.query("Masks.str.startswith('M1_LoF')"),
   x = 'LOG10P (Backman et al 2021)',
   y = "LOG10P (Pipeline results)",
-  title = r"$log_{10}(P-value)$ - $log_{10}(P-value)$ plots Backman et al 2021 (pLoF)"
+  title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nBackman et al 2021 (pLoF)"
 )
-fig.savefig(tfile)
-fig.savefig(f"{ffile_pp}")
-plt.close(fig)
+fig_plof.savefig(tfile)
+fig_plof.savefig(f"{ffile_pp_plof}")
+plt.close(fig_plof)
+
+# Pval plof or 5in5
+fig_plof = make_fig(
+  plot_data=plot_data.query("Masks.str.startswith('M3_LoF_or')"),
+  x = 'LOG10P (Backman et al 2021)',
+  y = "LOG10P (Pipeline results)",
+  title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nBackman et al 2021 (pLoF or deleterious 5 in 5)"
+)
+fig_plof.savefig(tfile)
+fig_plof.savefig(f"{ffile_pp_plof_5in5}")
+plt.close(fig_plof)

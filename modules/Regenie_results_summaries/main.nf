@@ -33,3 +33,20 @@ process compute_lambda{
     python -u ${baseDir}/modules/Regenie_results_summaries/01_compute_lambda.py -c ${config} --wdir ${wdir} | tee 10_lambda_results.log
     """
 }
+
+process obtain_assoc_counts{
+  input:
+    val config
+    val wdir
+    val find_data_logs
+
+  output:
+    path "11_assoc_counts.log"
+  
+  script:
+    """
+    set -o pipefail
+
+    python -u ${baseDir}/modules/Regenie_results_summaries/02_association_counts.py -c ${config} --wdir ${wdir} | tee 11_assoc_counts.log
+    """
+}
