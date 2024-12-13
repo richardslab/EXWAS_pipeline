@@ -152,6 +152,8 @@ p <- ggplot(pval_pval_plots) +
 ggsave(
   tfile,p
 )
+
+
 ggsave(
   "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/zhao_etal_replication_log10p.png",
   p,

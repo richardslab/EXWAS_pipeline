@@ -3,13 +3,14 @@
 """
 #%%
 
-import os,shutil,yaml,pickle,re,glob,csv,gzip
+import os,shutil,yaml,pickle,re,glob,csv,gzip,math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import tempfile
 from scipy import stats
+
 
 tempdir = tempfile.TemporaryDirectory()
 tfile = os.path.join(tempdir.name,'temp.png')
@@ -20,48 +21,48 @@ plt.rcParams.update(
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb = os.path.join(outdir,'beta_beta_alphamissense_plof.png')
-ffile_pp = os.path.join(outdir,'pval_pval_alphamissense_plof.png')
+ffile_bb_plof = os.path.join(outdir,'beta_beta_alphamissense_plof_binary.png')
+ffile_pp_plof = os.path.join(outdir,'pval_pval_alphamissense_plof_binary.png')
+
+ffile_bb_plof_5in5 = os.path.join(outdir,'beta_beta_alphamissense_plof_or_d5in5_binary.png')
+ffile_pp_plof_5in5 = os.path.join(outdir,'pval_pval_alphamissense_plof_or_5in5_binary.png')
 
 # downloaded_data_constants
 alphamiss_gwas_path="/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/results/all_regenie_burden_test_res_GWAS_Catalog"
 alphamiss_gwas_files = {
-  "ZBMD":"step_2_ZBMD_ExWAS_pLOF_missense_ZBMD.regenie",
-  "dBilirubin":"step_2_IRNT_biliru_ExWAS_pLOF_missense_IRNT_biliru.regenie",
-  "Calcium":"step_2_IRNT_Ca_ExWAS_pLOF_missense_IRNT_Ca.regenie",
-  "DBP":"step_2_IRNT_DBP_ExWAS_pLOF_missense_IRNT_DBP.regenie",
-  "Glucose":"step_2_IRNT_glu_ExWAS_pLOF_missense_IRNT_glu.regenie",
-  "Height":"step_2_IRNT_height_ExWAS_pLOF_missense_IRNT_height.regenie",
-  "LDL":"step_2_IRNT_LDL_ExWAS_pLOF_missense_IRNT_LDL.regenie",
-  "RBC":"step_2_IRNT_RBC_ExWAS_pLOF_missense_IRNT_RBC.regenie",
-  "SBP":"step_2_IRNT_SBP_ExWAS_pLOF_missense_IRNT_SBP.regenie",
-  "TG":"step_2_IRNT_TG_ExWAS_pLOF_missense_IRNT_TG.regenie",
-  "WHR":"step_2_IRNT_WHR_ExWAS_pLOF_missense_IRNT_WHR.regenie"
+  "hypertension":"step_2_hypertension_ExWAS_pLOF_missense_hypertension.regenie",
+  "Hypercholesterolemia":"step_2_Hypercholesterolemia_ExWAS_pLOF_missense_Hypercholesterolemia.regenie",
+  "Cataract":"step_2_Cataract_ExWAS_pLOF_missense_Cataract.regenie",
+  "T2D":"step_2_T2D_ExWAS_pLOF_missense_T2D.regenie",
+  "Hypothyroidism":"step_2_Hypothyroidism_ExWAS_pLOF_missense_Hypothyroidism.regenie",
+  "Acute_renal_failure":"step_2_Acute_renal_failure_ExWAS_pLOF_missense_Acute_renal_failure.regenie",
+  "Atrial_fibrillation":"step_2_Atrial_fibrillation_ExWAS_pLOF_missense_Atrial_fibrillation.regenie",
+  "Osteoarthritis_localized":"step_2_Osteoarthritis_localized_ExWAS_pLOF_missense_Osteoarthritis_localized.regenie",
+  "Diaphragmatic_hernia":"step_2_Diaphragmatic_hernia_ExWAS_pLOF_missense_Diaphragmatic_hernia.regenie",
+  "MDD":"step_2_Major_depressive_disorder_ExWAS_pLOF_missense_Major_depressive_disorder.regenie"
 }
 # own regenie results:
-pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof/regeneron/Regenie_S2"
+pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/alphamiss_exact_binary/alphamiss_plof_5in5/Regenie_S2"
 pipeline_result_files = {
-  "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
-  "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
-  "Calcium":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_Ca.regenie.gz",
-  "DBP":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_DBP.regenie.gz",
-  "Glucose":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_glu.regenie.gz",
-  "Height":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_height.regenie.gz",
-  "LDL":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_LDL.regenie.gz",
-  "RBC":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_RBC.regenie.gz",
-  "SBP":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_SBP.regenie.gz",
-  "TG":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_TG.regenie.gz",
-  "WHR":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_WHR.regenie.gz"
+  "hypertension":"8_regenie_S2_OUT_ukb_merged_1-22_hypertension.regenie.gz",
+  "Hypercholesterolemia":"8_regenie_S2_OUT_ukb_merged_1-22_Hypercholesterolemia.regenie.gz",
+  "Cataract":"8_regenie_S2_OUT_ukb_merged_1-22_Cataract.regenie.gz",
+  "T2D":"8_regenie_S2_OUT_ukb_merged_1-22_T2D.regenie.gz",
+  "Hypothyroidism":"8_regenie_S2_OUT_ukb_merged_1-22_Hypothyroidism.regenie.gz",
+  "Acute_renal_failure":"8_regenie_S2_OUT_ukb_merged_1-22_Acute_renal_failure.regenie.gz",
+  "Atrial_fibrillation":"8_regenie_S2_OUT_ukb_merged_1-22_Atrial_fibrillation.regenie.gz",
+  "Osteoarthritis_localized":"8_regenie_S2_OUT_ukb_merged_1-22_Osteoarthritis_localized.regenie.gz",
+  "Diaphragmatic_hernia":"8_regenie_S2_OUT_ukb_merged_1-22_Diaphragmatic_hernia.regenie.gz",
+  "MDD":"8_regenie_S2_OUT_ukb_merged_1-22_Major_depressive_disorder.regenie.gz"
 }
 
-
 Alphamissense_masks = {
-  "pLOF_only.singleton" : "M1_LoF.singleton",
-  "pLOF_only.0.01" : "M1_LoF.0.01",
-  "pLOF_only.0.001" : "M1_LoF.0.001",
-  'pLOF_and_55missense.singleton' : "M4_LoF_or_deleterious_5_of_5.singleton",
-  'pLOF_and_55missense.0.01' : "M4_LoF_or_deleterious_5_of_5.0.01",
-  'pLOF_and_55missense.0.001' : "M4_LoF_or_deleterious_5_of_5.0.001"
+  "pLOF_only.singleton": "M1_LoF.singleton",
+  "pLOF_only.0.01": "M1_LoF.0.01",
+  "pLOF_only.0.001": "M1_LoF.0.001",
+  "pLOF_and_55missense.singleton": 'M3_deleterious_5in5.singleton',
+  "pLOF_and_55missense.0.01": 'M3_deleterious_5in5.0.01',
+  "pLOF_and_55missense.0.001": 'M3_deleterious_5in5.0.001'
 }
 
 
@@ -84,6 +85,14 @@ def _parse_info(val):
     res = None
   return res
 
+def _parse_info_beta(val):
+  res = re.findall("REGENIE_BETA=.*?;",val)
+  if len(res) == 1:
+    res = float(res[0].split("=")[1].strip(";"))
+  else:
+    res = None
+  return res
+
 plot_data = pd.DataFrame(
     columns = cnames
   )
@@ -99,15 +108,18 @@ for trait in pipeline_result_files.keys():
       LOG10P = lambda df: df['Pval'].apply(lambda val: -1 * np.log10(val)),
       SE = lambda df: df['Info'].apply(
         lambda val: _parse_info(val)
+      ),
+      beta = lambda df: df['Info'].apply(
+        lambda val: _parse_info_beta(val)
       )
-    )[['Name',"Alt","Model","Chr",'Pos',"Ref","Pval","Effect",'LOG10P','SE']].rename(
+    )[['Name',"Alt","Model","Chr",'Pos',"Ref","Pval","beta",'LOG10P','SE']].rename(
       {
         "Name":"Name_pipeline",
         "Alt":"Masks",
         "Chr":"chromosome",
         "Pos":"position_pipeline",
         "Model":"Models",
-        "Effect":"Beta (Pipeline results)",
+        "beta":"Beta (Pipeline results)",
         "Pval":"Pval (Pipeline results)",
         "LOG10P":"LOG10P (Pipeline results)",
         "SE":"SE (Pipeline results)"
@@ -128,7 +140,7 @@ for trait in pipeline_result_files.keys():
   ).assign(
     Masks = lambda df: df['ALLELE1'].map(Alphamissense_masks),
     p_value = lambda df: df['LOG10P'].apply(lambda val: 10**(-1 * val)),
-    Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-LR")
+    Models = lambda df: df['TEST'].apply(lambda val: f"{val}-WGR-FIRTH")
   )[["ID","Masks","CHROM",'GENPOS',"ALLELE1","Models","BETA","p_value","SE",'LOG10P']].rename(
     {
       "ID":"Name_Alphamissense",
@@ -158,14 +170,20 @@ for trait in pipeline_result_files.keys():
     ],axis=0
   ).reset_index(drop=True)
 
-def make_fig(plot_data,x,y,title):
-  row_idx = [x%2 for x in list(range(0,2))]
-  col_idx = [x%5 for x in list(range(0,5))]
+def make_fig(plot_data,x,y,title,beta=False):
+  nrow=2
+  ncol=5
+  row_idx = [x%nrow for x in list(range(0,nrow))]
+  col_idx = [x%ncol for x in list(range(0,ncol))]
   indicies = [(r,c) for r in row_idx for c in col_idx]
-  fig,ax = plt.subplots(2,5,figsize=(30,15))
-  for i,t in enumerate(backman_gwas_files.keys()):
-    trait_plot = plot_data.query(f"Trait == '{t}'")
-    min_scale = max(0,math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5)
+  fig,ax = plt.subplots(nrow,ncol,figsize=(35,25))
+  for i,t in enumerate(alphamiss_gwas_files.keys()):
+    trait_plot = plot_data.query(f"Trait == '{t}'").drop(['Masks','Models'],axis=1)
+    trait_plot = trait_plot.drop_duplicates()
+    if beta:
+      min_scale = math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5
+    else:
+      min_scale = max(0,math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5)
     max_scale = math.ceil(max(trait_plot[x].max(),trait_plot[y].max())) + 5
     scale = [math.ceil(x) - math.ceil(x)%5 for x in np.linspace(min_scale,max_scale,5)]
     # get correlation
@@ -185,7 +203,7 @@ def make_fig(plot_data,x,y,title):
       {
         "xlabel":"",
         "ylabel":"",
-        "title":rf"{t} $R^2$: {np.round(r2.correlation,2)}"
+        "title":f"{t}\n"+rf"$R^2$: {np.round(r2.correlation,3)}"
       }
     )
     ax[indicies[i]].set_xticks(scale)
@@ -196,6 +214,8 @@ def make_fig(plot_data,x,y,title):
   fig.supylabel("Pipeline results")
   fig.suptitle(title)
   return(fig)
+
+
 
 # Pval plof
 fig_plof = make_fig(
@@ -210,7 +230,7 @@ plt.close(fig_plof)
 
 # Pval plof or 5in5
 fig_plof = make_fig(
-  plot_data=plot_data.query("Masks.str.startswith('M3_LoF_or')"),
+  plot_data=plot_data.query("Masks.str.startswith('M3_deleterious_')"),
   x = 'LOG10P (Chen et al 2024)',
   y = "LOG10P (Pipeline results)",
   title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nChen et al 2024 (pLoF or deleterious 5 in 5)"

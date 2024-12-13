@@ -16,21 +16,18 @@ tempdir = tempfile.TemporaryDirectory()
 tfile = os.path.join(tempdir.name,'temp.png')
 plt.rcParams.update(
   {
-    "font.size":25
+    "font.size":30
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
-ffile_bb_plof = os.path.join(outdir,'beta_beta_regeneron_plof.png')
-ffile_pp_plof = os.path.join(outdir,'pval_pval_regeneron_plof.png')
 
-ffile_bb_plof_5i5n = os.path.join(outdir,'beta_beta_regeneron_plof_or_5in5.png')
+ffile_pp_plof = os.path.join(outdir,'pval_pval_regeneron_plof.png')
 ffile_pp_plof_5in5 = os.path.join(outdir,'pval_pval_regeneron_plof_or_5in5.png')
 
 
 # downloaded_data_constants
 backman_gwas_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/backman_exwas_results"
 backman_gwas_files = {
-  "ZBMD":"GCST90083038_buildGRCh38.tsv.gz",
   "dBilirubin":"GCST90083007_buildGRCh38.tsv.gz",
   "Calcium":"GCST90083009_buildGRCh38.tsv.gz",
   "DBP":"GCST90083131_buildGRCh38.tsv.gz",
@@ -44,7 +41,6 @@ backman_gwas_files = {
 # own regenie results:
 pipeline_result_path="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/regeneron_exact/regeneron/Regenie_S2"
 pipeline_result_files = {
-  "ZBMD":"8_regenie_S2_OUT_wes_qc_chr*_ZBMD.regenie.gz",
   "dBilirubin":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_biliru.regenie.gz",
   "Calcium":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_Ca.regenie.gz",
   "DBP":"8_regenie_S2_OUT_wes_qc_chr*_IRNT_DBP.regenie.gz",
@@ -162,10 +158,12 @@ for trait in pipeline_result_files.keys():
 
 
 def make_fig(plot_data,x,y,title):
-  row_idx = [x%2 for x in list(range(0,2))]
-  col_idx = [x%5 for x in list(range(0,5))]
+  nrow=3
+  ncol=3
+  row_idx = [x%nrow for x in list(range(0,nrow))]
+  col_idx = [x%ncol for x in list(range(0,ncol))]
   indicies = [(r,c) for r in row_idx for c in col_idx]
-  fig,ax = plt.subplots(2,5,figsize=(30,15))
+  fig,ax = plt.subplots(nrow,ncol,figsize=(30,25))
   for i,t in enumerate(backman_gwas_files.keys()):
     trait_plot = plot_data.query(f"Trait == '{t}'")
     min_scale = max(0,math.floor(min(trait_plot[x].min(),trait_plot[y].min()))-5)
@@ -199,6 +197,7 @@ def make_fig(plot_data,x,y,title):
   fig.supylabel("Pipeline results")
   fig.suptitle(title)
   return(fig)
+
 
 # Pval plof
 fig_plof = make_fig(

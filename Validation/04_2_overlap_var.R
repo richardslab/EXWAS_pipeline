@@ -9,7 +9,7 @@ library(patchwork)
 tfile <- file.path(tempdir(),'tmp.png')
 var_file <- "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/var_venn_diagram.png"
 
-pipeline_plof_or_del5in5 <- list.files("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5/regeneron",pattern="annotations_wes_qc_chr.*_sitesonly\\.txt",full.names=T)
+pipeline_plof_or_del5in5 <- list.files("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/alphamiss_exact/alphamiss_plof_5in5",pattern="annotations_ukb_merged_1-22_sitesonly.txt",full.names=T)
 
 alpha_plof_or_del5in5 <- read.table(
   "/scratch/richards/yiheng.chen/project14_ExWAS_AlphaMissense/data/Annotation/annotation_files_used_for_ExWAS/regenie.anno.file.pLOF.missense.txt",
@@ -32,6 +32,8 @@ pipeline_plof_or_del5in5_annotation <- data.frame()
 for (each_f in pipeline_plof_or_del5in5){
   each_res <- read.table(
       each_f,sep="\t",header=F,quote=""
+    ) %>% mutate(
+      V1 = paste0("chr",V1)
     )
   colnames(each_res) <- paste0("pipeline_",c("SNP","GENE","annotation"))
   pipeline_plof_or_del5in5_annotation <- rbind(
@@ -114,6 +116,8 @@ ggsave(
   device='png',
   height=8.5,width=10.5,units='in'
 )
+
+
 ggsave(
   var_file,
   p,

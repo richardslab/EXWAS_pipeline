@@ -167,6 +167,21 @@ def __parse_mutationtaster(consequence,consequence_elem,MUTATIONTASTER_ORDER):
       return i
   assert(False)
 
+def __parse_am_class(consequence,consequence_elem,ALPHAMISSENSE_PLUGIN_ORDER):
+  am_class_preds = [x.strip() for x in consequence_elem[1].split(",")]
+  am_class_preds = [x for x in am_class_preds if x!='.']
+  if len(am_class_preds) == 0:
+    return None
+  assert(
+    all(
+      [x in ALPHAMISSENSE_PLUGIN_ORDER for x in am_class_preds]
+    )
+  ),f"invalid am_class pred {consequence}"
+  for i in ALPHAMISSENSE_PLUGIN_ORDER:
+    if i in am_class_preds:
+      return i
+  assert(False)
+
 def parse_var_consequence(annotation,CONST):
   """summarize the consequences for each variant for the plugins that we have
 
@@ -180,38 +195,29 @@ def parse_var_consequence(annotation,CONST):
     consequence_elem = [x.strip() for x in consequence.split("=")]
     if consequence_elem[0] == "IMPACT":
       var_consequences['IMPACT']=__parse_IMPACT(consequence,consequence_elem,CONST['IMPACT'])
-
     elif consequence_elem[0] == "LoF":
       var_consequences["LoF"] = __parse_lof_order(consequence,consequence_elem,CONST['LoF'])
-
     elif consequence_elem[0] == 'AlphaMissense_pred':
       var_consequences['AlphaMissense_pred']=__parse_alphamissense(consequence,consequence_elem,CONST['AlphaMissense_pred'])
-
     elif consequence_elem[0] == 'EVE_Class25_pred':
       var_consequences['EVE_Class25_pred'] = __parse_eve_class25(consequence,consequence_elem,CONST['EVE_Class25_pred'])
-    
     elif consequence_elem[0] == 'LRT_pred':
       var_consequences['LRT_pred'] = __parse_lrt_order(consequence,consequence_elem,CONST['LRT_pred'])
-    
     elif consequence_elem[0] == 'MutationTaster_pred':
       var_consequences['MutationTaster_pred'] = __parse_mutationtaster(consequence,consequence_elem,CONST['MutationTaster_pred'])
-
     elif consequence_elem[0] == 'Polyphen2_HDIV_pred':
       var_consequences['Polyphen2_HDIV_pred'] = __parse_polyphen2_hdiv(consequence,consequence_elem,CONST['Polyphen2_HDIV_pred'])
-    
     elif consequence_elem[0] == 'Polyphen2_HVAR_pred':
       var_consequences['Polyphen2_HVAR_pred'] = __parse_polyphen2_hvar(consequence,consequence_elem,CONST['Polyphen2_HVAR_pred'])
-
     elif consequence_elem[0] == 'SIFT4G_pred':
       var_consequences['SIFT4G_pred'] = __parse_sift4g_pred(consequence,consequence_elem,CONST['SIFT4G_pred'])
-    
     elif consequence_elem[0] == 'SIFT_pred':
       var_consequences['SIFT_pred'] = __parse_sift4g_pred(consequence,consequence_elem,CONST['SIFT_pred'])
-
     elif consequence_elem[0] == 'CADD_PHRED':
       var_consequences['CADD_PHRED'] = __parse_cadd_phred(consequence,consequence_elem,CONST['CADD_PHRED'])
-
     elif consequence_elem[0] == 'REVEL':
       var_consequences['REVEL'] = __parse_revel(consequence,consequence_elem,CONST['REVEL'])
+    elif consequence_elem[0]  == 'am_class':
+      var_consequences['am_class'] = __parse_am_class(consequence,consequence_elem,CONST['am_class'])
     
   return var_consequences

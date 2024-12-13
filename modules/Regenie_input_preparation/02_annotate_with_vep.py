@@ -19,7 +19,6 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
     CONFIG.vep_docker_image
   ]
-
   ## all the paths in here are relative to the paths within the apptainer image
   vep_cmd = [
     # for input format
@@ -47,6 +46,10 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     "--stats_text",
     "--compress_output",'bgzip'
   ]
+  if CONFIG.vep_fork is not None:
+    vep_cmd += [
+      '--fork',str(CONFIG.vep_fork)
+    ]
 
   full_cmd = apptainer_cmd + [f"\"{' '.join(vep_cmd)}\""]
   print("VEP annotation apptainer commands:")
@@ -102,7 +105,7 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/alphamis_exact_configs/proj_config.yml"
     cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr16_sitesonly.vcf"
     print("TEST")

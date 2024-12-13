@@ -253,6 +253,7 @@ def main():
         if write_chunks:
           conn.commit()
           write_chunks = False
+    conn.close()
   except Exception as e:
     print(f"SQLITE3 error: {e}")
     conn.close()
@@ -306,9 +307,9 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_or_5in5_configs/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof_or_5in5"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr1_sitesonly.vcf"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/alphamis_exact_configs/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/alphamiss_exact"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/alphamissense_results/ukb_merged_1-22_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
 
