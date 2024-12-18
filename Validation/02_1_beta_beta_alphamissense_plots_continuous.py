@@ -59,9 +59,9 @@ Alphamissense_masks = {
   "pLOF_only.singleton": "M1_LoF.singleton",
   "pLOF_only.0.01": "M1_LoF.0.01",
   "pLOF_only.0.001": "M1_LoF.0.001",
-  "pLOF_and_55missense.singleton": 'M3_deleterious_5in5.singleton',
-  "pLOF_and_55missense.0.01": 'M3_deleterious_5in5.0.01',
-  "pLOF_and_55missense.0.001": 'M3_deleterious_5in5.0.001'
+  "pLOF_and_55missense.singleton": 'M2_LoF_or_deleterious.singleton',
+  "pLOF_and_55missense.0.01": 'M2_LoF_or_deleterious.0.01',
+  "pLOF_and_55missense.0.001": 'M2_LoF_or_deleterious.0.001'
 }
 
 
@@ -210,7 +210,7 @@ plt.close(fig_plof)
 
 # Pval plof or 5in5
 fig_plof = make_fig(
-  plot_data=plot_data.query("Masks.str.startswith('M3_deleterious_')"),
+  plot_data=plot_data.query("Masks.str.startswith('M2_')"),
   x = 'LOG10P (Chen et al 2024)',
   y = "LOG10P (Pipeline results)",
   title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nChen et al 2024 (pLoF or deleterious 5 in 5)"

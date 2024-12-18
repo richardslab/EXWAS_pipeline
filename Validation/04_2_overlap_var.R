@@ -7,7 +7,7 @@ library(tidyverse)
 library(patchwork)
 
 tfile <- file.path(tempdir(),'tmp.png')
-var_file <- "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/var_venn_diagram.png"
+var_file <- "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/var_venn_diagram.pdf"
 
 pipeline_plof_or_del5in5 <- list.files("/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/alphamiss_exact/alphamiss_plof_5in5",pattern="annotations_ukb_merged_1-22_sitesonly.txt",full.names=T)
 
@@ -54,7 +54,9 @@ make_venn <- function(df){
     color = "black", 
     lwd = 0.8, 
     lty = 1,
-    label_alpha = 0.5
+    label_alpha = 0.5,
+    label_size=5,
+    set_size=5
   ) + 
   scale_fill_gradient(
     low = "#F4FAFE", 
@@ -66,61 +68,54 @@ make_venn <- function(df){
     text = element_blank(),
     title = element_blank(),
     legend.position = "none"
-  ) +coord_flip()
-  ggsave(
-    tfile,
-    p,
-    device='png',width=7,height=5,units='in'
-  )
+  ) + coord_flip()
   return(p)
 }
 
 a <- make_venn(
   var_venn_data <- list(
-    "pipeline
-pLoF" = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "pLoF") %>% pull(id),
-    "Alphamissense
-pLoF" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "pLoF") %>% pull(id)
+    "pipeline pLoF             " = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "pLoF") %>% pull(id),
+    "             Chen et al 2024 pLoF" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "pLoF") %>% pull(id)
   )
 )
+
+
+
 b <- make_venn(
   var_venn_data <- list(
-    "pipeline
-5in5" = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "deleterious_5_of_5") %>% pull(id),
-    "Alphamissense
-5in5" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "missense.5in5") %>% pull(id)
+    "pipeline 5in5             " = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "deleterious_5_of_5") %>% pull(id),
+    "             Chen et al 2024 5in5" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "missense.5in5") %>% pull(id)
   )
 )
+
+
 c <- make_venn(
   var_venn_data <- list(
-    "pipeline
-pLoF" = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "pLoF") %>% pull(id),
-    "Alphamissense
-5in5" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "missense.5in5") %>% pull(id)
+    "pipeline pLoF             " = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "pLoF") %>% pull(id),
+    "             Chen et al 2024 5in5" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "missense.5in5") %>% pull(id)
   )
 )
 
 d <- make_venn(
   var_venn_data <- list(
-    "pipeline
-5in5" = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "deleterious_5_of_5") %>% pull(id),
-    "Alphamissense
-pLoF" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "pLoF") %>% pull(id)
+    "pipeline 5in5             " = pipeline_plof_or_del5in5_annotation %>% filter(pipeline_annotation == "deleterious_5_of_5") %>% pull(id),
+    "             Chen et al 2024 pLoF" = alpha_plof_or_del5in5 %>% filter(alpha_annotation == "pLoF") %>% pull(id)
   )
 )
 
 p <- (a|b)/(c|d)
+
 ggsave(
   tfile,
   p,
   device='png',
-  height=8.5,width=10.5,units='in'
+  height=6,width=8,units='in'
 )
-
 
 ggsave(
   var_file,
   p,
-  device='png',
-  height=8.5,width=10.5,units='in'
+  device='pdf',
+  height=6,width=8,units='in'
 )
+

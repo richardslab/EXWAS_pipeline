@@ -253,6 +253,7 @@ def main():
         if write_chunks:
           conn.commit()
           write_chunks = False
+    conn.commit()
     conn.close()
   except Exception as e:
     print(f"SQLITE3 error: {e}")

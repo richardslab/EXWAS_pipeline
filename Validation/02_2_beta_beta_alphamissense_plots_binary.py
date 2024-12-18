@@ -60,10 +60,11 @@ Alphamissense_masks = {
   "pLOF_only.singleton": "M1_LoF.singleton",
   "pLOF_only.0.01": "M1_LoF.0.01",
   "pLOF_only.0.001": "M1_LoF.0.001",
-  "pLOF_and_55missense.singleton": 'M3_deleterious_5in5.singleton',
-  "pLOF_and_55missense.0.01": 'M3_deleterious_5in5.0.01',
-  "pLOF_and_55missense.0.001": 'M3_deleterious_5in5.0.001'
+  "pLOF_and_55missense.singleton": 'M2_LoF_or_deleterious.singleton',
+  "pLOF_and_55missense.0.01": 'M2_LoF_or_deleterious.0.01',
+  "pLOF_and_55missense.0.001": 'M2_LoF_or_deleterious.0.001'
 }
+
 
 
 
@@ -171,12 +172,12 @@ for trait in pipeline_result_files.keys():
   ).reset_index(drop=True)
 
 def make_fig(plot_data,x,y,title,beta=False):
-  nrow=2
-  ncol=5
+  nrow=3
+  ncol=4
   row_idx = [x%nrow for x in list(range(0,nrow))]
   col_idx = [x%ncol for x in list(range(0,ncol))]
   indicies = [(r,c) for r in row_idx for c in col_idx]
-  fig,ax = plt.subplots(nrow,ncol,figsize=(35,25))
+  fig,ax = plt.subplots(nrow,ncol,figsize=(33,20))
   for i,t in enumerate(alphamiss_gwas_files.keys()):
     trait_plot = plot_data.query(f"Trait == '{t}'").drop(['Masks','Models'],axis=1)
     trait_plot = trait_plot.drop_duplicates()
@@ -203,7 +204,7 @@ def make_fig(plot_data,x,y,title,beta=False):
       {
         "xlabel":"",
         "ylabel":"",
-        "title":f"{t}\n"+rf"$R^2$: {np.round(r2.correlation,3)}"
+        "title":f"{t} "+rf"$R^2$: {np.round(r2.correlation,2)}"
       }
     )
     ax[indicies[i]].set_xticks(scale)
@@ -230,7 +231,7 @@ plt.close(fig_plof)
 
 # Pval plof or 5in5
 fig_plof = make_fig(
-  plot_data=plot_data.query("Masks.str.startswith('M3_deleterious_')"),
+  plot_data=plot_data.query("Masks.str.startswith('M2_')"),
   x = 'LOG10P (Chen et al 2024)',
   y = "LOG10P (Pipeline results)",
   title = r"$log_{10}(P-value)$ vs $log_{10}(P-value)$"+"\nChen et al 2024 (pLoF or deleterious 5 in 5)"
