@@ -53,8 +53,7 @@ def __obtain_annotation_var(var_consequence,annotation_def,annotation_criteria,v
       conn = sqlite3.connect(vep_summarie_file)
       cur = conn.cursor()
       plugin_var = cur.execute(
-        f"""
-        SELECT SNP,gene FROM vep_summaries WHERE plugin = ? AND ({plugin_criteria_query_str})
+        f"""SELECT SNP,gene FROM vep_summaries WHERE plugin = ? AND ({plugin_criteria_query_str})
         """,tuple([plugin] + plugin_criteria_vals)
       ).fetchall()
       conn.close()
@@ -143,10 +142,10 @@ if __name__ == "__main__":
   if cargs.test =='t':
     from unittest import mock
     cargs = mock.Mock()
-    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
-    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr21_sitesonly.vcf"
-    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
+    cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/alphamis_exact_configs/proj_config.yml"
+    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/alphamiss_exact"
+    cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/alphamissense_results/ukb_merged_1-22_sitesonly.vcf"
+    __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_2_create_annotation_files.py"
     print("TEST")
 
   with open(cargs.cfile,'r') as ptr:

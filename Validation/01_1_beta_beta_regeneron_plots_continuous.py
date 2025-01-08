@@ -16,7 +16,7 @@ tempdir = tempfile.TemporaryDirectory()
 tfile = os.path.join(tempdir.name,'temp.png')
 plt.rcParams.update(
   {
-    "font.size":30
+    "font.size":35
   }
 )
 outdir = "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures"
