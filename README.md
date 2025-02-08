@@ -22,9 +22,9 @@ nextflow run \
   -profile conda
 ```
 > [!WARNING]
-> Please make sure information in these configuration files are correct
+> Please make sure information in these configuration files are correct and the paths to proj_config_template.yml is specified in nextflow_template.config
 > - [nextflow_template.config](./nextflow_template.config)
-> - [proj_config_template.yml](./proj_config_template.yml)
+> - [proj_config_template.yml](./conf/proj_config.yml)
 
 ## Pipeline descriptions:
 
