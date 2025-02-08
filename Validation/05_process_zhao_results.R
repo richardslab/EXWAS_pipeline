@@ -116,9 +116,9 @@ ggsave(
 )
 
 ggsave(
-  file.path(outdir,"zhao_etal_replication.png"),
+  file.path(outdir,"zhao_etal_replication.pdf"),
   beta_forest_plots,
-  device='png',width=10,height=8,
+  device='pdf',width=10,height=8,
 )
 
 
@@ -155,7 +155,7 @@ ggsave(
 
 
 ggsave(
-  "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/zhao_etal_replication_log10p.png",
+  "/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/figures/zhao_etal_replication_log10p.pdf",
   p,
-  device='png'
+  device='pdf'
 )

@@ -209,10 +209,10 @@ for (each_trait in n_traits){
 write.table(
   backman_summary_table,
   file.path(tab_out,"backman_summary_table.tsv"),
-  sep="\t",row.names=F
+  sep="\t",row.names=F,quote=F
 )
 write.table(
   alphamiss_summary_table,
   file.path(tab_out,"alphamiss_summary_table.tsv"),
-  sep="\t",row.names=F
+  sep="\t",row.names=F,quote=F
 )

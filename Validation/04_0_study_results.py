@@ -27,7 +27,7 @@ backman_masks = {
   "M1.singleton" : "M1_LoF.singleton",
   "M1.0001" : "M1_LoF.1e-05",
   "M1.001" : "M1_LoF.0.0001",
-  "M1.01" : "M1_LoF",
+  "M1.01" : "M1_LoF.0.001",
   "M1.1" : "M1_LoF.0.01",
   'M3.singleton' : "M3_LoF_or_deleterious_5_of_5.singleton",
   'M3.0001' : "M3_LoF_or_deleterious_5_of_5.1e-05",
