@@ -17,14 +17,35 @@
 ## Getting started
 ```
 nextflow run \
-  ./workflows/exwas.nf \ 
+  ./main.nf \ 
   -c ./nextflow_template.config \
   -profile conda
 ```
+
 > [!WARNING]
 > Please make sure information in these configuration files are correct and the paths to proj_config_template.yml is specified in nextflow_template.config
 > - [nextflow_template.config](./nextflow_template.config)
 > - [proj_config_template.yml](./conf/proj_config.yml)
+>
+> If running with conda environment, make sure [conda environment file](./exwas_pipeline_environment.yml) obtained from our github repo is specified in [nextflow_template.config](./nextflow_template.config)
+>
+> Please ensure [VEP apptainer definition file](./exwas_pipeline_vep105_apptainer.def) obtained from our github repo is specified in [nextflow_template.config](./nextflow_template.config)
+
+## File output descriptions
+
+- Output files are 'published' to the output directory specified in the [nextflow_template.config](./nextflow_template.config) using **Hard link** as described [here](https://www.nextflow.io/docs/latest/reference/process.html#publishdir)
+
+  - This can be verified by inspecting the inodes number.
+  - The hashes are in the trace located here
+```
+<launch_dir>/pipeline_execution_information/
+```
+```bash
+ls -i <output_dir>/output_file
+ls -i <launch_dir>/work/<dir_hash>/<dir_hash>/output_file
+```
+  - Consequently, to completely delete the files, must delete **both** references to the file (one in the output directory and one in the 'work' directory) 
+
 
 ## Pipeline descriptions:
 

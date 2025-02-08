@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Check the variables specified in the config file to make sure it has what it needs to run the scripts
 """

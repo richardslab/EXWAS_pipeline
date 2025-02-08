@@ -76,28 +76,40 @@ Annotate and prepare data for ExWAS burden testing with Regenie
 LOAD IN REQUIRED MODULES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include {check_yaml_config} from "../../modules/validate_config"
-include {align_vcf} from "../../modules/align_vcf"
-include {annotate_vcf} from "../../modules/annotate_variants"
-include {create_annotation_summaries} from "../../modules/create_annotation_summary"
+include {create_annotation_summaries} from "./modules/create_annotation_summary"
+include {create_annotation_file} from "./modules/create_regenie_annotations"
+include {create_setlist_file} from "./modules/create_regenie_setlist"
 
-workflow ANNOTATE_VARIANTS {
+workflow annotation_workflow {
   take:
     each_input
   
   main:
-    check_res = check_yaml_config(each_input,params.config_file,params.outdir)
+    // mask_res = create_mask_files(annotate_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    // align_vcf_res = align_vcf(check_res.log.collect(),each_input,params.config_file,params.outdir)
-    
-    // annotate_res = annotate_vcf(align_vcf_res.log.collect(),each_input,params.config_file,params.outdir)
+    // annotate_file_res = create_annotation_file(annotate_summary_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    // annotate_summary_res = create_annotation_summaries(mask_res.log.collect(),each_input,params.config_file,params.outdir)
+    // setlist_res = create_setlist_file(annotate_file_res.log.collect(),each_input,params.config_file,params.outdir)
 
-    // align_vcf >> "vcf_alignment_results"
-    // annotate_res >> "VEP_annotation_results"
-    // mask_res >> "Regenie_mask_input_files"
-    // annotate_summary_res >> "VEP_annotation_summaries"
-    // annotate_file_res >> "Regenie_annotation_inputs_logs"
-    // setlist_res >> "Regenie_setlist_input_logs"
+  publish:
+      check_res >> "yaml_validations"
+      // align_vcf >> "vcf_alignment_results"
+      // annotate_res >> "VEP_annotation_results"
+      // mask_res >> "Regenie_mask_input_files"
+      // annotate_summary_res >> "VEP_annotation_summaries"
+      // annotate_file_res >> "Regenie_annotation_inputs_logs"
+      // setlist_res >> "Regenie_setlist_input_logs"
 }
+
+workflow {
+  // Generate annotations, which will be input file path, base name tuples
+  Channel.fromPath(params.annotation_vcf).map{
+    file -> [file,"${file.baseName}"]
+  }.set{ annotation_inputs }
+  annotation_workflow(annotation_inputs)
+}
+workflow.onComplete{
+  log.info (workflow.success ? '\nVariant annotation and summary completed!' : '\nPipeline did not complete' )
+}
+
+
