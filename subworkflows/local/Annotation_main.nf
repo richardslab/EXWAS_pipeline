@@ -77,20 +77,9 @@ include {check_yaml_config; align_vcf; annotate_vcf; create_mask_files; create_a
 
 include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
 
-process test {
-  input:
-    val x
-  output:
-    stdout
-  script:
-    """
-    echo ${x}
-    """
-}
-
 // This workflow runs ExWAS for 1 VCF
 // by using Channel, can run mutliple VCF in parallele (i.e, per chr)
-workflow annotation_workflow {192
+subworkflow annotation_workflow {192
   take:
     each_input
   main:
