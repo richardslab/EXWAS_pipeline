@@ -6,35 +6,25 @@
 
 ## This documentations is split into 2 sections:
 
-[Usage](doc/usage.md)
-[Output](doc/output.md)
+- For detailed usage descriptions
+  - [Input/Output files](doc/input_outputs.md)
+  - [Regenie Burden testing information](doc/burden_testing.md)
+  - [VEP variant annotations](doc/variant_annotations.md)
+  - [How to specify the coniguration](doc/configuration_file_descriptions.md)
+  - [Citations](./CITATIONS.md)
+
 
 ## Getting started
-
-```bash
+```
 nextflow run \
-  woorkflows/exwas.nf \ 
-  -c <path>/nextflow_template.config \
+  ./workflows/exwas.nf \ 
+  -c ./nextflow_template.config \
   -profile conda
 ```
-
 > [!WARNING]
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
-> 
-1. Put the conda environment file (exwas_pipeline.yml) at the same level as this README.md
-2. Fill in nextflow_template.config and proj_config_template.yml
-3. run:
-```
-
-```
-  * Nextflow creates caches for runs and stuff, so doing this will store it in the default location.
-    
-OR edit run_nextflow_template.sh with proper in/out directories for nextflow. then run
-```
-<path>/run_nextflow_template.sh
-```
-  * There are paths where you can specify where Nextflow cache so you can put things somewhere else.
-    
+> Please make sure information in these configuration files are correct
+> - [nextflow_template.config](./nextflow_template.config)
+> - [proj_config_template.yml](./proj_config_template.yml)
 
 ## Pipeline descriptions:
 
@@ -48,143 +38,6 @@ The apptainer VEP image can be created using the definition files provided. Defa
 **Part 2:**
 This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects 1 set of plink files of genotyped variants. This step is performed once. Step 2 is per analysis (as specified by the user in the configuration files)
 
-### General Notes
-  * Making conda environment on first run will take time. As long as the conda cache is not deleted, the environment will not be made again.
-  * For all steps in the pipeline, as long as the log files are not deleted, the steps will be skipped.
-    * **Notes** this also means that if the log files are moved from default location or renamed, the steps will be re-ran and files will be overwritten.
-  * Remember to set this flag to *bcftools_param_set_id* 0 to use the original IDs in the VCF file.
-    * if set to 1, then the annotation files will be using the modified SNP id that is chr:pos:ref:alt **after left alignment**. Needs to take extra step to ensure this modified ID matches your ExWAS input data if using this flag.
-
-#### Input
-**Common inputs**
- * project configuration yaml file
- * nextflow configuration file
-   
-**Part 1**
- * 1 or more VCF files for annotation purposes
-
-**Part 2**
- * Part 1 outputs
- * 1 or more genetic dataset for Regenie. Format can be pgen, bgen, or bed (same as what Regenie takes)
-
-#### Output
-**Part 1**
- * sites only VCF for each VCF files provided
- * VEP annotation output and summary information
- * Summarized output results in an indexed SQL database
- * Mask files, annotation files, and setlist files for each analysis specified by the user
-   
-**Part 2**
- * Regenie S1 output
- * Regenie S2 output
-  
-### Annotation
-  * VCF for generating annotation files are specified separately from the input to run Regenie. 
-      * This way, sites-only VCF can be used to generate annotation, as it is smaller and faster to run.
-      * As long as the variants are the same, should not need to regenerate the annotations for each ExWAS (e.g., same set of annotations for all males and females, stratified analyses, etc) (I think...)
-    * If VCF contains genetic data, a sites-only VCF will be created by the --drop-genotypes flag in bcftools. If the VCF is a sites-only VCF, then this flag will simply not have any effect (I think...)
-  * Using VEP
-    * The VEP image have no plugins and none of the cache files required to run any plugins. It only has vep installed.
-      * Have to download everything, then specify these location in *proj_config_template.yml*
-  * The plugins that are parsed right now:
-     * IMPACT
-     * LoFtee
-     * REVEL
-     * dbNSFP
-       * alphamissense_pred
-       * CADD_phred
-       * EVE_Class25_pred
-       * LRT_pred
-       * MutationTaster_pred
-       * Polyphen2_HDIV_pred
-       * Polyphen2_HVAR_pred
-       * SIFT4G_pred
-       * SIFT_pred
-      
-### ExWAS with Regenie
-  * Step 1 of Regenie is done only once and will be used for all 'study' specified in the *proj_config_template.yml*
-  * Step 2 of Regenie will be done separately for each 'study' specified in the *proj_config_template.yml*
-  
-
-## Usage notes
-### Specified within nextflow_template.config:
- * Annotation files generated from VCF will be matched by wildcard character if specified or assumes a 1-1 matching
-  * e.g., if annotation file has name: **Sites_only_VCF_chr\*.vcf** and the regenie input file has name **Another_file_chr\*.pgen**, then will match based on whatever is specified by the characters in the '*' position
-  * e.g., if annotation file has name: **Sites_only_allchr.vcf** and the regenie input is **Another_file_allchr.bgen**, then it will generate only 1 annotation file and assumes it matches to **Another_file_allchr.bgen**
-  * the wildcard character can stand-in for 1 or more alphanumeric symbols.
-### For nextflow_template.config and proj_config_template.yml:
- * Any flags and values meant for Regenie (i.e., anything in *s1_params* and *s2_params* from the proj_config_template.yml) will be passed directly to Regenie so the flag names and the values have to be what it expects based on [Regenie documentation](https://rgcgithub.github.io/regenie/options/)
-
-
-## Configuration files
-  * exwas_pipeline.yml: conda environment file to execute the python scripts
-  * nextflow_template.config: nextflow configuration
-  * proj_config_template.yml: ExWAS configuration yaml files:
-### proj_config_template.yml: specification of study masks
-  * Masks are defined in the "mask_definitions" flag in the form of a python dictionary
-    ```
-    "study_name":{"mask_name":["variant_annotation1","variant_annotation2",...,"variant_annotation3"]}
-    ```
-     * e.g.,:
-        * to specify a study with 2 masks. mask1 includes all pLoF and deleterious variants and mask2 includes only pLoF:
-          ```
-          "studyA":{
-           "mask1":["pLoF","deleterious"],
-           "mask2":["pLoF"]
-          }
-          ```
-  * How variants are annotated based on plugins are defined in the "annotation_definitions" flag in the form of a python dictionary
-    ```
-    "study_name":{
-      "annotation1":{
-        "type":{
-         "plugin1":['plugin1 criteria1','plugin1 criteria2',..,'plugin X criteria X'],
-         'var_consequence':['var_consequence1','var_consequence2',...,'var_consequenceX']
-        }
-      },
-      "annotation2":{...}
-    }
-    ```
-    * 'var_conseqence' is optional. It define what type of variants are considered. For instance, only variants tagged with "missense_variant" by VEP or "missense_variant,3UTR_region" are included. If this flag is omitted, all variants are considered.
-    * 'type': can be either "all", "any", or any numeric value. This specify criteria from how many plugins are required.
-    * For instance. To specify studyA where:
-        * pLoF = VEP HIGH impact
-        * deleterious_5in5 based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT. Only if it is annotated as deleterious by all 5 programs. Only missense variants considered. One would do
-        * deleterious_1_or_more based on LRT, MutationTaster, Polyphen2_HDIV, Polyphen2_HDVAR, and SIFT. Only if it is annotated as deleterious by all 5 programs. Only missense variants considered. One would do
-      ```
-      "studyA":{
-        "pLoF":{
-          "all":{
-            "IMPACT":["HIGH"]
-           }
-         },
-        "deleterious_5in5":{
-          "all":{
-            "LRT_Pred":["D"],
-            "MutationTaster_pred":["A","D"],
-            "Polyphen2_HDIV":["D"],
-            "Polyphen2_HVAR":["D"],
-            "SIFT_pred":["D"]
-          },
-          "var_consequence":["missense_variant"]
-        },
-      "deleterious_1_or_more":{
-          1:{
-            "LRT_Pred":["D"],
-            "MutationTaster_pred":["A"],
-            "Polyphen2_HDIV":["D"],
-            "Polyphen2_HVAR":["D"],
-            "SIFT_pred":["D"]
-          },
-          "var_consequence":["missense_variant"]
-        }
-      ```
-  * The order of annotation to pick for variants that satisfy multiple annotation criteria is defined in "annotation_order" flag as a form of python dictionary
-    * Notes: Even if there is only 1 annotation, this is required
-    * for instance, to always select "pLoF" before "deleterious_5in5" and "deleterious_5in5" before "deleterious_1_or_more"
-      ```
-      {"studyA":["pLoF","deleterious_5in5","deleterious_1_or_more"]}
-      ```
 ## program requirements (paths to be specified in proj_config_template.yml):
   * nextflow >= 23.10.0
   * python 3.10.9
@@ -192,10 +45,15 @@ This runs Regenie step 1 and step 2 with user defined parameters. Step 1 expects
   * Other required programs (plink, tabix, etc) are listed in proj_config_template.yml
   * Python packages required will be specified via the CONDA environment
 
+## General Notes
+  * Making conda environment on first run will take time. As long as the conda cache is not deleted, the environment will not be made again.
+  * For all steps in the pipeline, as long as the log files are not deleted, the steps will be skipped.
+    * **Notes** this also means that if the log files are moved from default location or renamed, the steps will be re-ran and files will be overwritten.
+  * Remember to set this flag to *bcftools_param_set_id* 0 to use the original IDs in the VCF file.
+    * if set to 1, then the annotation files will be using the modified SNP id that is chr:pos:ref:alt **after left alignment**. Needs to take extra step to ensure this modified ID matches your ExWAS input data if using this flag.
+
 
 ## Citations
-
-
 If you use Exwas_pipeline for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX)
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
