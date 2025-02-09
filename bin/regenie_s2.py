@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Run Step 2 of regenie using genotyped variants
 """
 import os,sys,shutil,yaml,re,argparse
@@ -107,12 +108,6 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     "--nxtflow_genetic",
     dest="nxtflow_g",
     help="Nextflow 'step2_exwas_genetic' input parameter"
@@ -138,7 +133,6 @@ if __name__ == "__main__":
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr10.bgen"
     cargs.nxtflow_gtype="bgen"
     cargs.nxtflow_g="/home/richards/kevin.liang2/scratch/exwas_pipeline/data/exwas_data/wes_qc_chr*"
@@ -151,13 +145,11 @@ if __name__ == "__main__":
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
-  assert(cargs.wdir),'output directory missing'
   
   print("Run Regenie Step 2")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
   print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
 
@@ -166,7 +158,7 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   cargs.input_vcf = str(Path(cargs.input_vcf).with_suffix(""))
   VCF_NAME = Path(cargs.input_vcf).stem
-  WDIR = cargs.wdir
+  WDIR = os.getcwd()
 
   sys.path.append(os.path.dirname(__file__))
   from python_helpers import regenie_helpers

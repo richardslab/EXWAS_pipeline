@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """ Create the set list file, which is shared by all studies. It is based on the input VCF.
 
 """
@@ -101,12 +102,6 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -117,7 +112,6 @@ if __name__ == "__main__":
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/plof_configs/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/plof"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr10_sitesonly.vcf"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_input_preparation/04_1_create_annotation_summaries.py"
     print("TEST")
@@ -127,14 +121,13 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = Path(cargs.input_vcf).stem
-  WDIR = cargs.wdir
+  WDIR = os.getcwd()
 
 
   print("Creating se list file")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
   print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
 

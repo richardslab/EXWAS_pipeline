@@ -20,7 +20,6 @@ def __check_path_exists():
     "plink" : os.path.isfile(CONFIG.plink),
     "plink2" : os.path.isfile(CONFIG.plink2),
     "vep_docker": os.path.isfile(CONFIG.vep_docker_image),
-    "wdir": os.path.isdir(WDIR)
   }
   assert(
     all(list(path_existence.values()))
@@ -87,12 +86,6 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -103,20 +96,18 @@ if __name__ == "__main__":
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
+
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr16_sitesonly.vcf"
     print("TEST")
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
-  assert(cargs.wdir),'output directory missing'
   
   print("Checking configuration file")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
   print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
 
@@ -124,6 +115,6 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = Path(cargs.input_vcf).stem
-  WDIR = cargs.wdir
+  WDIR = os.getcwd() # in nextflow, this gives you the working directory
 
   main()

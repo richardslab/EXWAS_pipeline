@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Run Step 1 of regenie using genotyped variants
 """
 import os,sys,shutil,yaml,re,argparse
@@ -43,12 +44,6 @@ if __name__ == "__main__":
     help='configuration yaml file'
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -59,25 +54,22 @@ if __name__ == "__main__":
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     print("TEST")
   
 
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
-  assert(cargs.wdir),'output directory missing'
   
   print("Run Regenie Step 1")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-  WDIR = cargs.wdir
+  WDIR = os.getcwd()
   
   main()

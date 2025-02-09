@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
   Compute the lambda for each results
 """
@@ -105,12 +106,6 @@ if __name__ == "__main__":
     help='configuration yaml file'
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -121,25 +116,22 @@ if __name__ == "__main__":
     import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/zhao_etal_config/proj_config.yml"
-    cargs.wdir="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/Validation_regeneron/zhao_etal_BSN_BMI"
     __file__ = "/home/richards/kevin.liang2/scratch/exwas_pipeline/src/modules/Regenie_results_summaries/01_compute_lambda.py"
     print("TEST")
 
 
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
-  assert(cargs.wdir),'output directory missing'
 
   print("Computing genomic inflation factors (lambda)")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
 
   with open(cargs.cfile,'r') as ptr:
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
-  WDIR = cargs.wdir
+  WDIR = os.getcwd()
   if not isinstance(CONFIG.processing_threads,(float,int)):
     PROCESSING_THREADS = np.min([5,cpu_count()-1])
   else:

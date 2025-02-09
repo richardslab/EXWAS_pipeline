@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
   This is base on Ethan's script but rewritten in python with inputs specified from configuration file
 """
@@ -90,12 +91,6 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
-    '--wdir',
-    dest='wdir',
-    help="Output directory",
-    type=str
-  )
-  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -106,7 +101,6 @@ if __name__ == "__main__":
     from unittest import mock
     cargs = mock.Mock()
     cargs.cfile = "/home/richards/kevin.liang2/scratch/exwas_pipeline/config/alphamis_exact_configs/proj_config.yml"
-    cargs.wdir="/scratch/richards/kevin.liang2/exwas_pipeline/results/pipeline_results"
     cargs.input_vcf="/home/richards/kevin.liang2/scratch/exwas_pipeline/results/sitesonly_VCF/wes_qc_chr16_sitesonly.vcf"
     print("TEST")
 
@@ -115,16 +109,14 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
 
   VCF_NAME = Path(cargs.input_vcf).stem
-  WDIR = cargs.wdir
+  WDIR = os.getcwd()
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
-  assert(cargs.wdir),'output directory missing'
 
   print("Annotating VCF")
   print("="*20)
   print(f"Config file: {os.path.basename(cargs.cfile)}")
   print(f"input VCF: {os.path.basename(cargs.input_vcf)}")
-  print(f"output dir: {cargs.wdir}")
   print("="*20)
 
   
