@@ -1,12 +1,18 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    RUN MAIN WORKFLOW
+    Variant annotation VEP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This subworkflow annootate variants using VEP with user defined plugins.
 */
 
 // Uses DSL 2
 nextflow.enable.dsl = 2
-
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check runtime environment.
+Conda should not be included
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 def checkRuntimeEnvironment(){
   /*
    Check the runtime environment for nextflow before any process
@@ -19,6 +25,13 @@ def checkRuntimeEnvironment(){
 def runtimeEnv = checkRuntimeEnvironment()
 assert runtimeEnv[1] == null : "Deactivate conda environment first. Found ${runtimeEnv[1]}"
 
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check input files.
+If wildcards are used for VCF file for VEP annotations, wildcards should be present in the 
+genetic files for burden testing also
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 def check_input_exwas_files(){
   /*
     Determine if the wild card character is present in the input files
@@ -29,7 +42,6 @@ def check_input_exwas_files(){
   return [vcf_wildcard,exwas_wildcard]
 }
 def wildcard_found = check_input_exwas_files()
-
 assert (wildcard_found[0] && wildcard_found[1]) || (! wildcard_found[0] && ! wildcard_found[1]) : "Wildcard notation not consistent between input VCF and ExWAS VCF"
 if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Will match annotation VCF with ExWAS input file based on wild card location"
@@ -37,37 +49,30 @@ if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Assumes 1-1 matching between VCF and ExWAS input"
 }
 
+
+
 log.info """
-    Regenie ExWAS gene burden test summaries
+              VEP apptainer img subworkflow
 ==================================================
-Summarize ExWAS gene burden test results
-
-  # output data
-  output directory: ${params.outdir}
-
-  # pipeline configurations
-  conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
-  pipeline configuration: ${params.config_file}
+BUILDING VEP apptainer img
 ==================================================
 """
 
 
-include {ANNOTATE_VARIANTS} from "../subworkflows/local/Annotation_main.nf"
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LOAD IN REQUIRED MODULES
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include{build_vep_apptainer_img} from "../modules/create_vep_apptainer_img"
 
-
-workflow EXWAS_PIPELINE {
-  take:
-    apptainer_img
-
+workflow BUILD_VEP_IMG {
   main:
-    // Generate annotations, which will be input file path, base name tuples
-    Channel.fromPath(params.annotation_vcf).map{
-        file -> [file,"${file.baseName}"]
-    }.set{ annotation_inputs }
-    // SUBWORKFLOW: Run input validation and variant annotation
-    ANNOTATE_VARIANTS(
-      apptainer_img,
-      annotation_inputs
+    build_res = build_vep_apptainer_img(
+      params.config_file,
+      params.vep_apptainer_img
     )
 
+  emit:
+    apptainer_img = build_res.apptainer_img
 }

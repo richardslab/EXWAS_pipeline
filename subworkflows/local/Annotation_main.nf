@@ -52,21 +52,9 @@ if (wildcard_found[0] && wildcard_found[1]){
 
 
 log.info """
-              Regenie ExWAS pipeline
+              Variant annotation Subworkflow
 ==================================================
-Annotate and prepare data for ExWAS burden testing with Regenie
-
-  # input data
-  Input vcf file for generating annotations: ${params.annotation_vcf}
-  File for ExWAS: ${params.step2_exwas_genetic}
-    ExWAS file type: ${params.step2_exwas_genetic_file_type}
-    ${log_str}
-  # output data
-  output directory: ${params.outdir}
-
-  # pipeline configurations
-  conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
-  pipeline configuration: ${params.config_file}
+Annotate variant using VEP
 ==================================================
 """
 
@@ -80,24 +68,38 @@ include {check_yaml_config} from "../../modules/validate_config"
 include {align_vcf} from "../../modules/align_vcf"
 include {annotate_vcf} from "../../modules/annotate_variants"
 include {create_annotation_summaries} from "../../modules/create_annotation_summary"
+include{build_vep_apptainer_img} from "../../modules/create_vep_apptainer_img"
 
 workflow ANNOTATE_VARIANTS {
   take:
+    apptainer_img
     each_input
-  
+
   main:
-    check_res = check_yaml_config(each_input,params.config_file,params.outdir)
+    check_res = check_yaml_config(
+      each_input,
+      params.config_file
+    )
 
-    // align_vcf_res = align_vcf(check_res.log.collect(),each_input,params.config_file,params.outdir)
+    // align_vcf_res = align_vcf(
+    //   check_res.log.collect(),
+    //   each_input,
+    //   params.config_file
+    // )
     
-    // annotate_res = annotate_vcf(align_vcf_res.log.collect(),each_input,params.config_file,params.outdir)
+    // annotate_res = annotate_vcf(
+    //   align_vcf_res.log.collect(),
+    //   align_vcf_res.aligned_vcf_files.collect(),
+    //   align_vcf_res.aligned_vcf_tabix_index.collect(),
+    //   apptainer_img,
+    //   each_input,
+    //   params.config_file
+    // )
 
-    // annotate_summary_res = create_annotation_summaries(mask_res.log.collect(),each_input,params.config_file,params.outdir)
-
-    // align_vcf >> "vcf_alignment_results"
-    // annotate_res >> "VEP_annotation_results"
-    // mask_res >> "Regenie_mask_input_files"
-    // annotate_summary_res >> "VEP_annotation_summaries"
-    // annotate_file_res >> "Regenie_annotation_inputs_logs"
-    // setlist_res >> "Regenie_setlist_input_logs"
+    // annotate_summary_res = create_annotation_summaries(
+    //   annotate_res.log.collect(),
+    //   annotate_res.var_annotations.collect(),
+    //   each_input,
+    //   params.config_file
+    // )
 }

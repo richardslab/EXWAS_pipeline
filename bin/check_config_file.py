@@ -18,8 +18,7 @@ def __check_path_exists():
     "tabix": os.path.isfile(CONFIG.tabix), 
     "apptainer": os.path.isfile(CONFIG.apptainer),
     "plink" : os.path.isfile(CONFIG.plink),
-    "plink2" : os.path.isfile(CONFIG.plink2),
-    "vep_docker": os.path.isfile(CONFIG.vep_docker_image),
+    "plink2" : os.path.isfile(CONFIG.plink2)
   }
   assert(
     all(list(path_existence.values()))

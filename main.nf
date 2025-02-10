@@ -9,12 +9,19 @@
 Runs main workflow
 */
 
+
+
 include {EXWAS_PIPELINE} from "./workflows/exwas"
+include {BUILD_VEP_IMG} from "./workflows/create_vep_apptainer_img.nf"
 
 workflow {
+    // WORKFLOW: CREATE VEP APPTAINER IMAGE
+    build_res = BUILD_VEP_IMG()
+    
     // WORKFLOW: Run main workflow
     //
-    EXWAS_PIPELINE()
+    EXWAS_PIPELINE(build_res.apptainer_img)
+
 }
 
 workflow.onComplete{

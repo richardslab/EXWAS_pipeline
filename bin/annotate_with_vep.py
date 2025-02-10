@@ -18,7 +18,7 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     # -C nothing in host system accessible except for binded ones
     # https://docs-dev.alliancecan.ca/wiki/Using_Apptainer#Official_Apptainer_documentation
     'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
-    CONFIG.vep_docker_image
+    VEP_IMG
   ]
   ## all the paths in here are relative to the paths within the apptainer image
   vep_cmd = [
@@ -91,6 +91,12 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    '--vep_img',
+    dest='vep_img',
+    help="VEP apptainer img",
+    type=str
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -110,6 +116,7 @@ if __name__ == "__main__":
 
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = os.getcwd()
+  VEP_IMG = cargs.vep_img
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
 
