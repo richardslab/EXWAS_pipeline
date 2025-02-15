@@ -7,7 +7,7 @@ process annotate_vcf {
     path align_vcf_logs
     path align_vcfs
     path align_vcf_tabix
-    val apptainer_img
+    val  apptainer_img
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
 
@@ -18,6 +18,9 @@ process annotate_vcf {
   script:
   """
   set -o pipefail
-  annotate_with_vep.py -c ${config_file} -i ${annotation_vcf} --vep_img ${apptainer_img} | tee "3_vep_annotation_${ofile_suffix}.logs"
+  # Because it is calling apptainer img with mounts, pass in 
+  # directory of published file to access directly.
+  # things in workdir were symlinks and will not work.
+  annotate_with_vep.py -c ${config_file} -i ${annotation_vcf} --vep_img ${apptainer_img} --input_dir ${params.outdir}/ANNOTATE_VARIANTS/02_VCF_alignment | tee "3_vep_annotation_${ofile_suffix}.logs"
   """
 }

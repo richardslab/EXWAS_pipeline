@@ -17,7 +17,7 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     # set up apptainer runtime file system access
     # -C nothing in host system accessible except for binded ones
     # https://docs-dev.alliancecan.ca/wiki/Using_Apptainer#Official_Apptainer_documentation
-    'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{WDIR}:/tmp/vep_wdir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
+    'run',"-C",'--bind',f"{CONFIG.vep_cache_dir}:/tmp/vep_cache,{IDIR}:/tmp/vep_wdir,{WDIR}:/tmp/vep_odir,{CONFIG.vep_plugin_dir}:/tmp/vep_plugins",
     VEP_IMG
   ]
   ## all the paths in here are relative to the paths within the apptainer image
@@ -27,8 +27,9 @@ def annotate_vcf(vcf_infile,vcf_anno_out):
     '--assembly',CONFIG.genome_build,
     '--format','vcf', 
     '--cache',
+    "--force_overwrite",
     # corresonds to directories binded above
-    '-o',f"/tmp/vep_wdir/{vcf_anno_out}",
+    '-o',f"/tmp/vep_odir/{vcf_anno_out}",
     '--dir_cache','/tmp/vep_cache',
     '--dir_plugins','/tmp/vep_plugins'
   ]
@@ -91,6 +92,12 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    '--input_dir',
+    dest='input_dir',
+    help="input directory of Sites only VCF",
+    type=str
+  )
+  parser.add_argument(
     '--vep_img',
     dest='vep_img',
     help="VEP apptainer img",
@@ -117,6 +124,7 @@ if __name__ == "__main__":
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = os.getcwd()
   VEP_IMG = cargs.vep_img
+  IDIR = cargs.input_dir
   assert(os.path.isfile(cargs.cfile)),'config file is missing'
   assert(os.path.isfile(cargs.input_vcf)),'input vcf is missing'
 

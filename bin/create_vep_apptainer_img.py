@@ -3,7 +3,7 @@
 Create the VEP apptainer image
 """
 
-import shutil,os,sys,yaml,pyreadr,re,json,gzip,sqlite3
+import shutil,os,sys,yaml,re,json,gzip,sqlite3
 import pandas as pd
 import numpy as np
 from collections import namedtuple

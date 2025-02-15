@@ -81,20 +81,20 @@ workflow ANNOTATE_VARIANTS {
       params.config_file
     )
 
-    // align_vcf_res = align_vcf(
-    //   check_res.log.collect(),
-    //   each_input,
-    //   params.config_file
-    // )
+    align_vcf_res = align_vcf(
+      check_res.log.collect(),
+      each_input,
+      params.config_file
+    )
     
-    // annotate_res = annotate_vcf(
-    //   align_vcf_res.log.collect(),
-    //   align_vcf_res.aligned_vcf_files.collect(),
-    //   align_vcf_res.aligned_vcf_tabix_index.collect(),
-    //   apptainer_img,
-    //   each_input,
-    //   params.config_file
-    // )
+    annotate_res = annotate_vcf(
+      align_vcf_res.log.collect(),
+      align_vcf_res.aligned_vcf_files.collect(),
+      align_vcf_res.aligned_vcf_tabix_index.collect(),
+      apptainer_img,
+      each_input,
+      params.config_file
+    )
 
     // annotate_summary_res = create_annotation_summaries(
     //   annotate_res.log.collect(),

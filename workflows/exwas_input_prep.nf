@@ -55,7 +55,7 @@ Summarize ExWAS gene burden test results
 include {ANNOTATE_VARIANTS} from "../subworkflows/local/Annotation_main.nf"
 
 
-workflow EXWAS_PIPELINE {
+workflow EXWAS_INPUT_PREP_PIPELINE {
   take:
     apptainer_img
 
