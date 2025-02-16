@@ -1,0 +1,46 @@
+BootStrap: docker
+From: mambaorg/micromamba:latest
+
+
+%arguments
+	env_file
+
+# these are executed when the image is being built
+# specify bash shell
+%post -c /bin/bash
+
+
+	wdir="/tmp/wdir"
+	mkdir $wdir
+	cd $wdir
+
+	micromamba create -f {{ env_file }} --prefix $MAMBA_ROOT_PREFIX
+
+
+	# install git
+	apt-get update && \
+	apt-get install git -y && \
+  apt-get clean
+
+
+# this defines what happens when doing
+# apptainer run -C apptainer_pkg "<options>"
+%runscript
+	echo "this is apptainer image ExWAS pipeline"
+
+
+	cmd="micromamba run --prefix $MAMBA_ROOT_PREFIX /bin/bash -c \"$@\""
+	echo $cmd
+	micromamba run --prefix $MAMBA_ROOT_PREFIX /bin/bash -c "$@"
+
+
+
+%labels
+	Author: Kevin Liang
+	Version: 1.0
+	Description: "Apptainer definition file for ExWAS pipeline"
+
+%help
+	This is an apptainer image contains program to run the ExWAS pipeline
+
+
