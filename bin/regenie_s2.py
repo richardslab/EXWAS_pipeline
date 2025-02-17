@@ -8,11 +8,11 @@ import warnings
 from pathlib import Path
 
 def _run_regenie_s2_each_study(study):
-  regenie_s1_dir = os.path.join(WDIR,"Regenie_S1")
-
+  regenie_s1_dir = os.path.dirname(REGENIE_S1_RES)
   study_outdir = os.path.join(WDIR,study)
-  assert(os.path.isdir(study_outdir)),f"missing a step for {study_outdir}??"
-  regenie_s2_dir = os.path.join(study_outdir,"Regenie_S2")
+  input_file_dir = os.path.join(IDIR,study)
+  assert(os.path.isdir(input_file_dir)),f"missing a step for {input_file_dir}??"
+  regenie_s2_dir = os.path.join(study_outdir)
   os.makedirs(regenie_s2_dir,exist_ok=True)
 
   print("Looking for relevant supplementary files")
@@ -20,7 +20,7 @@ def _run_regenie_s2_each_study(study):
     input_vcf = cargs.input_vcf,
     nxtflow_g = cargs.nxtflow_g,
     nxtflow_annotation = cargs.nxtflow_annotation,
-    study_dir =study_outdir
+    study_dir = input_file_dir
   )
   print("*"*20)
   print("found the following files")
@@ -71,7 +71,7 @@ def _run_regenie_s2_each_study(study):
       "--htp","htp_results"
     ]
   s2_cmd += [
-    "--pred",os.path.join(regenie_s1_dir,f"7_Regenie_S1_pred.list"),
+    "--pred",REGENIE_S1_RES,
     "--out",os.path.join(regenie_s2_dir,f"8_regenie_S2_OUT_{VCF_NAME}")
   ]
   print("Regenie S2 command:")
@@ -105,6 +105,18 @@ if __name__ == "__main__":
     '--input_vcf','-i',
     dest='input_vcf',
     help="input VCF file",
+    type=str
+  )
+  parser.add_argument(
+    '--regenie_s1',
+    dest='regenie_s1',
+    help="Regenie S1 pred list file full path",
+    type=str
+  )
+  parser.add_argument(
+    '--idir',
+    dest='idir',
+    help="Regenie input dir",
     type=str
   )
   parser.add_argument(
@@ -159,6 +171,8 @@ if __name__ == "__main__":
   cargs.input_vcf = str(Path(cargs.input_vcf).with_suffix(""))
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = os.getcwd()
+  REGENIE_S1_RES = cargs.regenie_s1
+  IDIR = cargs.idir
 
   sys.path.append(os.path.dirname(__file__))
   from python_helpers import regenie_helpers

@@ -54,7 +54,7 @@ if (wildcard_found[0] && wildcard_found[1]){
 log.info """
               VEP apptainer img subworkflow
 ==================================================
-BUILDING VEP apptainer img
+Build VEP apptainer img
 ==================================================
 """
 

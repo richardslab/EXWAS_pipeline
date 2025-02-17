@@ -196,10 +196,18 @@ def __index_db(db_file,reindex=False):
 
 def main():
   expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt.gz')
+
+  # write to tmp, so if process killed half way, it is stored as tmp and will not be seen as complete.
   db_file = os.path.join(
+    WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db.tmp"
+  )
+  db_file_final = os.path.join(
     WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
   
+  if os.path.isfile(db_file):
+    os.remove(db_file)
+      
   print("Summarizing all VEP annotations")
   print("*"*20)
   print("The most severe consequence per gene (across transcripts) are kept")
@@ -278,6 +286,9 @@ def main():
   print(f"Parsed {distinct_variants} variants")
   print(f"generated annotations for {distinct_genes} genes")
   print("="*20)
+  sp.run([
+    'mv',db_file,db_file_final
+  ],check=True)
   return 
 
 if __name__ == "__main__":

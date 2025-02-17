@@ -7,7 +7,7 @@ import subprocess as sp
 from pathlib import Path
 
 def main():
-  regenie_s1_out = os.path.join(WDIR,"Regenie_S1")
+  regenie_s1_out = WDIR
   os.makedirs(regenie_s1_out,exist_ok=True)
   s1_cmd = [
     CONFIG.regenie,"--step","1"

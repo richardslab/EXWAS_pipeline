@@ -54,64 +54,20 @@ if (wildcard_found[0] && wildcard_found[1]){
 }
 
 log.info """
-              Regenie ExWAS pipeline
+      Regenie gene burden test subworkflow
 ==================================================
-run ExWAS burden testing with Regenie
-
-  # input data
-  Input vcf file for generating annotations: ${params.annotation_vcf}
-  File for ExWAS: ${params.step2_exwas_genetic}
-    ExWAS file type: ${params.step2_exwas_genetic_file_type}
-    ${log_str}
-  # output data
-  output directory: ${params.outdir}
-
-  # pipeline configurations
-  conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
-  pipeline configuration: ${params.config_file}
+- Run Regenie Step 1
 ==================================================
 """
 
 // Regenie input processing
-include {run_regenie_s1; run_regenie_s2} from "./modules/Regenie_gene_burden_tests"
+include {run_regenie_s1} from "../../modules/run_regenie_s1"
 
-
-workflow regenie_workflow {
+workflow RUN_REGENIE_S1 {
   main:
-    if (wildcard_found[1]){
-      Channel.fromPath(params.step2_exwas_genetic).filter{
-        file -> file.name.endsWith(".${params.step2_exwas_genetic_file_type}")
-      }.map{
-        file -> [file,"${file.baseName}"]
-      }.set{ regenie_input }
-    }else{
-      filename = file(params.step2_exwas_genetic + "." + params.step2_exwas_genetic_file_type)
-      Channel.of(filename).map{
-        file -> [file,"${file.baseName}"]
-      }.set{ regenie_input }
-    }
-
-    run_regenie_s1(params.config_file,params.outdir)
+    regenie_s1_res = run_regenie_s1(params.config_file)
     
-    run_regenie_s2(
-      regenie_input,
-      params.config_file,
-      params.outdir,
-      params.step2_exwas_genetic,
-      params.step2_exwas_genetic_file_type,
-      params.annotation_vcf,
-      run_regenie_s1.out.log
-    )
+  emit:
+    s1_output = regenie_s1_res.s1_output
+    s1_log = regenie_s1_res.log
 }
-
-
-workflow {
-  regenie_workflow()
-}
-
-
-workflow.onComplete{
-  log.info (workflow.success ? '\nDone ExWAS!' : '\nPipeline did not complete' )
-}
-
-

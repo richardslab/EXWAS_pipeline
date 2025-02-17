@@ -37,33 +37,16 @@ if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Assumes 1-1 matching between VCF and ExWAS input"
 }
 
-
-include {ANNOTATE_VARIANTS} from "../subworkflows/local/Annotation_main.nf"
-include {CREATE_REGENIE_INPUT} from "../subworkflows/local/create_regenie_inputs.nf"
-
-
-workflow EXWAS_INPUT_PREP_PIPELINE {
-  take:
-    apptainer_img
-
-  main:
-    // Generate annotations, which will be input file path, base name tuples
-    Channel.fromPath(params.annotation_vcf).map{
-        file -> [file,"${file.baseName}"]
-    }.set{ annotation_inputs }
-    
-    // SUBWORKFLOW: Run input validation and variant annotation
-    anno_res = ANNOTATE_VARIANTS(
-      apptainer_img,
-      annotation_inputs
-    )
-
-    // // SUBWORKFLOW: create Regenie inputs
-    CREATE_REGENIE_INPUT(
-      anno_res.anno_db,
-      anno_res.anno_log,
-      annotation_inputs
-    )
+include {RUN_REGENIE_S1} from "../subworkflows/local/Regenie_s1"
+include {RUN_REGENIE_S2} from "../subworkflows/local/Regenie_s2"
 
 
+workflow RUN_REGENIE {
+
+  // SUBWORKFLOW: Run step 1 of regenie
+  regenie_s1_res = RUN_REGENIE_S1()
+
+  // SUBWORKFLOW: Run step 2 of regenie
+  RUN_REGENIE_S2(regenie_s1_res.s1_output)
+  
 }

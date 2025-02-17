@@ -37,32 +37,17 @@ if (wildcard_found[0] && wildcard_found[1]){
 }
 
 log.info """
-    Regenie ExWAS gene burden test summaries
+    Regenie result sumamary subworkflow
 ==================================================
-Summarize ExWAS gene burden test results
-
-  # output data
-  output directory: ${params.outdir}
-
-  # pipeline configurations
-  conda environment: ${baseDir}/exwas_pipeline_conda_env.yml
-  pipeline configuration: ${params.config_file}
 ==================================================
 """
-include {find_data; compute_lambda; obtain_assoc_counts} from "./modules/Regenie_results_summaries"
+include {find_data; compute_lambda; obtain_assoc_counts} from "../../modules/regenie_result_summaries"
 
-workflow summarize_exwas_results {
+workflow SUMMARIZE_RESULTS {
   main:
     find_data(params.config_file,params.outdir)
 
     compute_lambda(params.config_file,params.outdir,find_data.out.log)
 
     obtain_assoc_counts(params.config_file,params.outdir,find_data.out.log)
-}
-workflow {
-  summarize_exwas_results()
-}
-
-workflow.onComplete{
-  log.info (workflow.success ? '\nDone summary!' : '\nPipeline did not complete' )
 }

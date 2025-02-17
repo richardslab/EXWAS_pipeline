@@ -16,6 +16,6 @@ process create_annotation_summaries{
   script:
   """
   set -o pipefail
-  python -u ${baseDir}/modules/Regenie_input_preparation/create_annotation_summaries.py -c ${config_file} -i ${annotation_vcf} | tee "5_1_vep_summaries_${ofile_suffix}.logs"
+  create_annotation_summaries.py -c ${config_file} -i ${annotation_vcf} | tee "5_1_vep_summaries_${ofile_suffix}.logs"
   """
 }

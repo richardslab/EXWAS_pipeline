@@ -52,9 +52,12 @@ if (wildcard_found[0] && wildcard_found[1]){
 
 
 log.info """
-              Variant annotation Subworkflow
+      Variant annotation/summary subworkflow
 ==================================================
-Annotate variant using VEP
+- Validate configuration file
+- Left align VCF
+- Annotate variant with VEP
+- Summarize VEP annotation
 ==================================================
 """
 
@@ -68,7 +71,6 @@ include {check_yaml_config} from "../../modules/validate_config"
 include {align_vcf} from "../../modules/align_vcf"
 include {annotate_vcf} from "../../modules/annotate_variants"
 include {create_annotation_summaries} from "../../modules/create_annotation_summary"
-include{build_vep_apptainer_img} from "../../modules/create_vep_apptainer_img"
 
 workflow ANNOTATE_VARIANTS {
   take:
@@ -96,10 +98,14 @@ workflow ANNOTATE_VARIANTS {
       params.config_file
     )
 
-    // annotate_summary_res = create_annotation_summaries(
-    //   annotate_res.log.collect(),
-    //   annotate_res.var_annotations.collect(),
-    //   each_input,
-    //   params.config_file
-    // )
+    annotate_summary_res = create_annotation_summaries(
+      annotate_res.log.collect(),
+      annotate_res.var_annotations.collect(),
+      each_input,
+      params.config_file
+    )
+      
+  emit:
+    anno_db = annotate_summary_res.annotations_db 
+    anno_log = annotate_summary_res.log
 }

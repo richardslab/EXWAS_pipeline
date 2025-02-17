@@ -17,7 +17,7 @@ def sanity_checks():
   A bunch of asserts. if all good, then passes
   """
   # annotation file exists
-  expected_annotation_file = os.path.join(WDIR,f'3_annotation_results_{VCF_NAME}.txt.gz')
+  expected_annotation_file = os.path.join(IDIR,f'3_annotation_results_{VCF_NAME}.txt.gz')
   assert(
     os.path.isfile(expected_annotation_file)
   ),f"Missing annotation file {expected_annotation_file}"
@@ -77,6 +77,12 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    '--input_dir',
+    dest='idir',
+    help="input directory",
+    type=str
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -107,6 +113,7 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = os.getcwd()
+  IDIR = cargs.idir
 
   sys.path.append(os.path.dirname(__file__))
   from python_helpers.vep_helpers import parse_vep_headers

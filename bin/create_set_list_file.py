@@ -14,7 +14,7 @@ def main():
   print("creating set list file")
   print("*"*20)
   vep_summarie_file = os.path.join(
-    WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
+    ANNOTATION_DIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -102,6 +102,12 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    '--annotation_summary_dir',
+    dest='anno_dir',
+    help="input directory",
+    type=str
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -122,6 +128,7 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
   VCF_NAME = Path(cargs.input_vcf).stem
   WDIR = os.getcwd()
+  ANNOTATION_DIR = cargs.anno_dir
 
 
   print("Creating se list file")

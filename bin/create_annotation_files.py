@@ -79,7 +79,7 @@ def main():
   print("creating annotation file per study")
   print("*"*20)
   vep_summarie_file = os.path.join(
-    WDIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
+    ANNOTATION_DIR,f"5_1_vep_summaries_{VCF_NAME}.sqlite3.db"
   )
   assert(
     os.path.isfile(vep_summarie_file)
@@ -88,12 +88,13 @@ def main():
   # Make sure there isn't an annotation file already
   all_studies = list(CONFIG.mask_definitions.keys())
   for study in all_studies:
+    os.makedirs(os.path.join(WDIR,study),exist_ok=True)
     study_ofile = os.path.join(WDIR,study,f"annotations_{VCF_NAME}.txt")
     assert(
       not os.path.isfile(study_ofile)
     ),f"annotation file found for {study}. Delete it first, or skip this step"
     study_annotation_info = CONFIG.annotation_definitions[study]
-    study_ofile = os.path.join(WDIR,study,f"annotations_{VCF_NAME}.txt")
+    study_ofile = os.path.join(WDIR.rstrip("/"),study,f"annotations_{VCF_NAME}.txt")
     study_var = dict()
     with open(study_ofile,'w') as ptr:
       for annotation in CONFIG.annotation_order[study]:
@@ -128,6 +129,12 @@ if __name__ == "__main__":
     type=str
   )
   parser.add_argument(
+    '--annotation_summary_dir',
+    dest='anno_dir',
+    help="input directory",
+    type=str
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -147,7 +154,8 @@ if __name__ == "__main__":
   CONFIG = namedtuple("params",params.keys())(**params)
 
   VCF_NAME = Path(cargs.input_vcf).stem
-  WDIR = os.getcwd()
+  ANNOTATION_DIR = cargs.anno_dir
+  WDIR=os.getcwd()
 
   print("Creating annotation file")
   print("="*20)
