@@ -16,6 +16,8 @@ process run_regenie_s2{
   
   output:
     path "8_regenie_s2_${ofile_suffix}.logs",emit: "log"
+    path "*/*.regenie.gz", emit: "Regenie_S2_results"
+    path "*/*.log",emit:"Regenie_Logs"
   
   script:
   """
