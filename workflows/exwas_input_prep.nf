@@ -59,10 +59,17 @@ workflow EXWAS_INPUT_PREP_PIPELINE {
     )
 
     // // SUBWORKFLOW: create Regenie inputs
-    CREATE_REGENIE_INPUT(
+    regenie_input_res = CREATE_REGENIE_INPUT(
       anno_res.anno_db,
       anno_res.anno_log,
       annotation_inputs
+    )
+
+  emit:
+    regenie_input_prep = regenie_input_res.setlist_res.join(
+      regenie_input_res.annotate_res
+    ).join(
+      regenie_input_res.mask_res
     )
 
 

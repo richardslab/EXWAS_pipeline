@@ -36,18 +36,20 @@ if (wildcard_found[0] && wildcard_found[1]){
   log_str = "Assumes 1-1 matching between VCF and ExWAS input"
 }
 
-log.info """
-    Regenie result sumamary subworkflow
-==================================================
-==================================================
-"""
 include {find_data; compute_lambda; obtain_assoc_counts} from "../../modules/regenie_result_summaries"
 
-workflow SUMMARIZE_RESULTS {
+workflow SUMMARIZE_REGENIE_RESULTS {
+  take:
+    regenie_results
+
   main:
-    find_data(params.config_file,params.outdir)
+    find_data_res = find_data(params.config_file)
 
-    compute_lambda(params.config_file,params.outdir,find_data.out.log)
+    compute_lambda_res = compute_lambda(
+      params.config_file,find_data_res.result_paths.collect().map{it.join(" ")}
+    )
 
-    obtain_assoc_counts(params.config_file,params.outdir,find_data.out.log)
+    // obtain_assoc_counts_res = obtain_assoc_counts(  
+    //   params.config_file
+    // )
 }

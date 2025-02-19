@@ -81,7 +81,7 @@ workflow RUN_REGENIE_S2 {
     }
 
     
-    run_regenie_s2(
+    regenie_s2_res = run_regenie_s2(
       regenie_input,
       params.config_file,
       regenie_s1,
@@ -89,4 +89,12 @@ workflow RUN_REGENIE_S2 {
       params.step2_exwas_genetic_file_type,
       params.annotation_vcf
     )
+    
+  emit:
+    regenie_s2_res = regenie_s2_res.log.join(
+      regenie_s2_res.Regenie_S2_results
+    ).join(
+      regenie_s2_res.Regenie_Logs
+    )
+
 }

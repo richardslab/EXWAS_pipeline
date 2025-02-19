@@ -45,23 +45,16 @@ log.info """
 ==================================================
 """
 
-
-include {ANNOTATE_VARIANTS} from "../subworkflows/local/Annotation_main.nf"
-include {CREATE_REGENIE_INPUT} from "../subworkflows/local/create_regenie_inputs.nf"
+include {SUMMARIZE_REGENIE_RESULTS} from "../subworkflows/local/Regenie_summary.nf"
 
 
-workflow RUN_REGENIE {
-  // Generate annotations, which will be input file path, base name tuples
-  Channel.fromPath(params.annotation_vcf).map{
-      file -> [file,"${file.baseName}"]
-  }.set{ annotation_inputs }
-  
-  // SUBWORKFLOW: Run input validation and variant annotation
-  ANNOTATE_VARIANTS(
-    apptainer_img,
-    annotation_inputs
-  )
+workflow SUMMARIZE_RESULTS {
+  take:
+    regenie_results
 
-  // SUBWORKFLOW: Create Regenie input
+  main:
+    // SUBWORKFLOW: SUMMARIZE REGENIE RESULTS
+    SUMMARIZE_REGENIE_RESULTS(regenie_results)
+
 
 }

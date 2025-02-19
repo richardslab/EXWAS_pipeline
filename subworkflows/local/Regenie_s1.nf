@@ -64,6 +64,9 @@ log.info """
 include {run_regenie_s1} from "../../modules/run_regenie_s1"
 
 workflow RUN_REGENIE_S1 {
+  take:
+    regenie_input_prep
+    
   main:
     regenie_s1_res = run_regenie_s1(params.config_file)
     

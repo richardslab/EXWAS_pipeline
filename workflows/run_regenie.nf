@@ -42,11 +42,18 @@ include {RUN_REGENIE_S2} from "../subworkflows/local/Regenie_s2"
 
 
 workflow RUN_REGENIE {
+  take:
+    regenie_inputs
 
-  // SUBWORKFLOW: Run step 1 of regenie
-  regenie_s1_res = RUN_REGENIE_S1()
+  main:
+    // SUBWORKFLOW: Run step 1 of regenie
+    regenie_s1_res = RUN_REGENIE_S1(regenie_inputs)
 
-  // SUBWORKFLOW: Run step 2 of regenie
-  RUN_REGENIE_S2(regenie_s1_res.s1_output)
+    // SUBWORKFLOW: Run step 2 of regenie
+    regenie_s2_res = RUN_REGENIE_S2(regenie_s1_res.s1_output)
+
+  emit:
+    regenie_s2_res = regenie_s2_res.regenie_s2_res
+
   
 }

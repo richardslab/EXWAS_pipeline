@@ -94,4 +94,14 @@ workflow CREATE_REGENIE_INPUT {
       each_input,
       params.config_file
     )
+  emit:
+    setlist_res = setlist_res.log.join(
+      setlist_res.setlist_files
+    )
+    annotate_res = annotate_file_res.log.join(
+      annotate_file_res.regenie_annotations
+    )
+    mask_res = mask_res.log.join(
+      mask_res.mask_files
+    )
 }

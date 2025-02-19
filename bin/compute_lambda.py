@@ -56,8 +56,10 @@ def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
     regenie_lambdas[k] = lambdaa
   return regenie_lambdas
 
-def __compute_lambda(each_study):
-  study_regenie_result_paths,summary_out = exwas_helpers.__get_study_exwas_paths(WDIR,each_study)
+def __compute_lambda(each_study,each_study_file):
+  with gzip.open(each_study_file,'rt') as ptr:
+    study_regenie_result_paths = yaml.safe_load(ptr)
+  summary_out = os.path.join(WDIR,each_study)
   regenie_lambdas = {}
   phenotypes = list(study_regenie_result_paths.keys())
   with Pool(min(cpu_count(),PROCESSING_THREADS)) as p:
@@ -91,9 +93,13 @@ def __compute_lambda(each_study):
 def main():
   studies = list(CONFIG.mask_definitions.keys())
   unique_phenotypes = CONFIG.s2_params['--phenoCol'].split(",")
-  for each_study in studies:
-    print(f"Working on {each_study}")
-    __compute_lambda(each_study)
+  assert(len(RES_PATH) == len(studies)),f"studies without results?"
+  for each_study_file in RES_PATH:
+    study_name = os.path.basename(os.path.normpath(re.sub(os.path.join("Regenie_Summaries","Phenotypes_results_paths.yaml.gz"),"",each_study_file)))
+    print(f"Working on {each_study_file}")
+    print(f"Working on {study_name}")
+    assert(study_name in studies),f"unknown {study_name}" 
+    # __compute_lambda(study_name,each_study_file)
 
   return
 
@@ -104,6 +110,12 @@ if __name__ == "__main__":
     dest='cfile',
     type=str,
     help='configuration yaml file'
+  ) 
+  parser.add_argument(
+    '--res_path',
+    dest='res_path',
+    nargs="+",type=str,
+    help='Path to Regenie results. Obtained from find_data.py'
   )
   parser.add_argument(
     '--test',
@@ -132,6 +144,8 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
   WDIR = os.getcwd()
+  RES_PATH = cargs.res_path
+
   if not isinstance(CONFIG.processing_threads,(float,int)):
     PROCESSING_THREADS = np.min([5,cpu_count()-1])
   else:

@@ -7,16 +7,15 @@ process find_data{
 
   input:
     val config
-    val wdir
 
   output:
-    path "9_found_regenie_results.log", emit: log
-    path "Phenotypes_results_paths.yaml.gz", emit: result_paths
+    path "9_found_regenie_results.log", emit: "log"
+    path "*/Regenie_Summaries/Phenotypes_results_paths.yaml.gz", emit: "result_paths"
 
   script:
     """
     set -o pipefail
-    find_data.py -c ${config} --wdir ${wdir} | tee 9_found_regenie_results.log
+    find_data.py -c ${config} --idir ${params.outdir}/REGENIE_OUTPUTS/Regenie_S2 | tee 9_found_regenie_results.log
     """
 }
 
@@ -27,16 +26,15 @@ process compute_lambda{
 
   input:
     val config
-    val wdir
-    val find_data_logs
+    val find_data_pheno_file
 
   output:
-    path "10_lambda_results.log", emit: log
+    path "10_lambda_results.log", emit: "log"
   
   script:
     """
     set -o pipefail
-    compute_lambda.py -c ${config} --wdir ${wdir} | tee 10_lambda_results.log
+    compute_lambda.py -c ${config} --res_path ${find_data_pheno_file} | tee 10_lambda_results.log
     """
 }
 
@@ -47,15 +45,14 @@ process obtain_assoc_counts{
 
   input:
     val config
-    val wdir
-    val find_data_logs
+    val find_data_res
 
   output:
-    path "11_assoc_counts.log"
+    path "11_assoc_counts.log",emit: "log"
   
   script:
     """
     set -o pipefail
-    association_counts.py -c ${config} --wdir ${wdir} | tee 11_assoc_counts.log
+    association_counts.py -c ${config} --regenie_s2_dir ${params.outdir}/REGENIE_OUTPUTS/Regenie_S2 --res_path ${find_data_res} | tee 11_assoc_counts.log
     """
 }

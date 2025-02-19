@@ -10,11 +10,10 @@ from collections import namedtuple
 
 def __find_files_per_phenotypes(each_study,unique_phenotypes):
   study_dir = os.path.join(WDIR,each_study)
-  regenie_s2_dir = os.path.join(study_dir,'Regenie_S2')
   summary_out = os.path.join(study_dir,'Regenie_Summaries')
   os.makedirs(summary_out,exist_ok=True)
   regenie_results = glob.glob(
-    os.path.join(regenie_s2_dir,"8_regenie_S2_OUT_*.regenie.gz")
+    os.path.join(REGENIE_S2_DIR,each_study,"8_regenie_S2_OUT_*.regenie.gz")
   )
   print(f"Processing {each_study}")
   print(f"results stored in {summary_out}")
@@ -61,6 +60,12 @@ if __name__ == "__main__":
     help='configuration yaml file'
   )
   parser.add_argument(
+    '--idir',
+    dest='idir',
+    type=str,
+    help='Regenie S2 output directory'
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -86,5 +91,6 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
   WDIR = os.getcwd()
+  REGENIE_S2_DIR = cargs.idir
 
   main()
