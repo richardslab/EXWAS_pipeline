@@ -49,7 +49,8 @@ workflow SUMMARIZE_REGENIE_RESULTS {
       params.config_file,find_data_res.result_paths.collect().map{it.join(" ")}
     )
 
-    // obtain_assoc_counts_res = obtain_assoc_counts(  
-    //   params.config_file
-    // )
+    obtain_assoc_counts_res = obtain_assoc_counts(  
+      params.config_file,
+      find_data_res.result_paths.collect().map{it.join(" ")}
+    )
 }

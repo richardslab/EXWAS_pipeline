@@ -59,7 +59,8 @@ def __process_single_phenotype_lambda(study_regenie_result_paths,phenotype):
 def __compute_lambda(each_study,each_study_file):
   with gzip.open(each_study_file,'rt') as ptr:
     study_regenie_result_paths = yaml.safe_load(ptr)
-  summary_out = os.path.join(WDIR,each_study)
+  summary_out = os.path.join(WDIR,each_study,'Regenie_Summaries')
+  os.makedirs(summary_out,exist_ok=True)
   regenie_lambdas = {}
   phenotypes = list(study_regenie_result_paths.keys())
   with Pool(min(cpu_count(),PROCESSING_THREADS)) as p:

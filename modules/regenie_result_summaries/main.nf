@@ -30,6 +30,7 @@ process compute_lambda{
 
   output:
     path "10_lambda_results.log", emit: "log"
+    path "*/Regenie_Summaries/Genomic_inflation_factors.tsv.gz", emit: "genomic_inflation_factors"
   
   script:
     """
@@ -49,10 +50,11 @@ process obtain_assoc_counts{
 
   output:
     path "11_assoc_counts.log",emit: "log"
+    path "*/Regenie_Summaries/ExWAS_counts.tsv.gz", emit: "ExWAS_counts"
   
   script:
     """
     set -o pipefail
-    association_counts.py -c ${config} --regenie_s2_dir ${params.outdir}/REGENIE_OUTPUTS/Regenie_S2 --res_path ${find_data_res} | tee 11_assoc_counts.log
+    association_counts.py -c ${config} --res_path ${find_data_res} | tee 11_assoc_counts.log
     """
 }

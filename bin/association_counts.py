@@ -108,13 +108,24 @@ def get_counts(each_study):
   Args:
       each_study (str): study name specified in configuration file.
   """
-  study_regenie_result_paths,summary_out = exwas_helpers.__get_study_exwas_paths(WDIR,each_study)
-  phenotypes = list(study_regenie_result_paths.keys())
-  with Pool(PROCESSING_THREADS) as p:
-    all_res = p.map(
-      partial(__get_counts_per_study,study_regenie_result_paths,len(phenotypes)),
-      phenotypes
-    )
+  studies = list(CONFIG.mask_definitions.keys())
+  unique_phenotypes = CONFIG.s2_params['--phenoCol'].split(",")
+  assert(len(RES_PATH) == len(studies)),f"studies without results?"
+  for each_study_file in RES_PATH:
+    study_name = os.path.basename(os.path.normpath(re.sub(os.path.join("Regenie_Summaries","Phenotypes_results_paths.yaml.gz"),"",each_study_file)))
+    print(f"Working on {each_study_file}")
+    print(f"Working on {study_name}")
+    assert(study_name in studies),f"unknown {study_name}" 
+    with gzip.open(each_study_file,'rt') as ptr:
+      study_regenie_result_paths = yaml.safe_load(ptr)
+    summary_out = os.path.join(WDIR,each_study,'Regenie_Summaries')
+    os.makedirs(summary_out,exist_ok=True)
+    phenotypes = list(study_regenie_result_paths.keys())
+    with Pool(PROCESSING_THREADS) as p:
+      all_res = p.map(
+        partial(__get_counts_per_study,study_regenie_result_paths,len(phenotypes)),
+        phenotypes
+      )
   result_counts  = pd.DataFrame()
   for res in all_res:
     columns = res.columns.tolist()
@@ -160,6 +171,12 @@ if __name__ == "__main__":
     help='configuration yaml file'
   )
   parser.add_argument(
+    '--res_path',
+    dest='res_path',
+    nargs="+",type=str,
+    help='Path to Regenie results. Obtained from find_data.py'
+  )
+  parser.add_argument(
     '--test',
     default='f',
     type=str
@@ -188,6 +205,7 @@ if __name__ == "__main__":
     params = yaml.full_load(ptr)['proj_config']
   CONFIG = namedtuple("params",params.keys())(**params)
   WDIR = os.getcwd()
+  RES_PATH = cargs.res_path
   if not isinstance(CONFIG.processing_threads,(float,int)):
     PROCESSING_THREADS = np.min([5,cpu_count()-1])
   else:
