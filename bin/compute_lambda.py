@@ -99,7 +99,7 @@ def main():
     print(f"Working on {each_study_file}")
     print(f"Working on {study_name}")
     assert(study_name in studies),f"unknown {study_name}" 
-    # __compute_lambda(study_name,each_study_file)
+    __compute_lambda(study_name,each_study_file)
 
   return
 
