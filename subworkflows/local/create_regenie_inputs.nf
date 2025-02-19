@@ -80,7 +80,8 @@ workflow CREATE_REGENIE_INPUT {
   main:
     mask_res = create_mask_files(
       each_input,
-      params.config_file
+      params.config_file,
+      annotation_summary
     )
 
     annotate_file_res = create_annotation_file(

@@ -7,6 +7,7 @@ process find_data{
 
   input:
     val config
+    val regenie_results
 
   output:
     path "9_found_regenie_results.log", emit: "log"

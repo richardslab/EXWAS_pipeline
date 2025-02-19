@@ -6,6 +6,7 @@ process create_mask_files {
   input: 
     tuple val(annotation_vcf), val(ofile_suffix)
     val config_file
+    path annotation_summaries
   
   output:
     // wildcard for study names

@@ -43,7 +43,7 @@ workflow SUMMARIZE_REGENIE_RESULTS {
     regenie_results
 
   main:
-    find_data_res = find_data(params.config_file)
+    find_data_res = find_data(params.config_file,regenie_results)
 
     compute_lambda_res = compute_lambda(
       params.config_file,find_data_res.result_paths.collect().map{it.join(" ")}
