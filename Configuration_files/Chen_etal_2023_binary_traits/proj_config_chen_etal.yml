@@ -1,0 +1,246 @@
+# Replication of Chen et al 2023: https://pubmed.ncbi.nlm.nih.gov/39180217/
+---
+
+
+
+programs: &programs
+  # general
+  bcftools: &bcftools "./bcftools"
+  tabix: &tabix "./tabix"
+  apptainer: &apptainer "./apptainer"
+  plink: &plink "./plink"
+  plink2: &plink2 "./plink2"
+  regenie: &regenie "./regenie"
+
+  # For annotations
+  vep_vrs: &vep_vrs "105.0"
+  vep_cache_dir: &vep_cache_dir "./vep_cache"
+  vep_plugin_dir: &vep_plugin_dir "./vep_cache"
+
+
+
+annotation_consequence_orders: &annotation_consequence_orders
+  # https://usf.app.box.com/s/p2etici4mp5noboju6g0mnqfjx8ymwzd
+  # also found in vep header
+  
+  # for each variant across transcripts: keep the most severe consequence
+  ## this defines which consequence to keep for each plugin across transcripts
+
+  # determines which direction is more severe (higher or lower)
+  CONST_NUMERIC: {
+    "CADD_PHRED":"higher",
+    "REVEL":"higher"
+  }
+
+  # the order of severity from most to least (left to right)
+  CONST: {
+    IMPACT: ["HIGH","MODERATE","LOW","MODIFIER"],
+    LoF: ["HC","LC"],
+    # alphamissense order
+    ## P: Pathogenic
+    ## B: Benign
+    ## A: Ambiguous
+    AlphaMissense_pred:["P","B","A"],
+
+    # EVE class 25 order
+    ## P: pathogenic
+    ## B: benign
+    ## U: uncertain
+    EVE_Class25_pred:["P","B","U"],
+
+    # LRT_pred order
+    ## D: deleterious
+    ## N: neutral
+    ## U: unknown
+    LRT_pred: ["D","N","U"],
+
+
+    # mutation taster order
+    #: automatic before non-automatic https://www.mutationtaster.org/info/documentation.html
+    ## A: disease_causing_automatic
+    ## D: Disease causing
+    ## P: Polymorishm automatic  
+    ## N: Polymorphism
+    MutationTaster_pred:["A","D","P","N"],
+
+    # polyphen2 hdiv order
+    ## D: "probably damaging", HDIV score in [0.957,1] or rankscore in [0.55859,0.91137]
+    ## P: "possibly damaging", HDIV score in [0.454,0.956] or rankscore in [0.37043,0.55681]
+    ## B: "benign", HDIV score in [0,0.452] or rankscore in [0.03061,0.36974]
+    Polyphen2_HDIV_pred:["D","P","B"],
+
+    # polyphen2 hvar order
+    ## D: "probably damaging", HVAR score in [0.909,1] or rankscore in [0.65694,0.97581]
+    ## P: "possibly damaging", HVAR in [0.447,0.908] or rankscore in [0.47121,0.65622]
+    ## B: "benign", HVAR score in [0,0.446] or rankscore in [0.01493,0.47076]
+    Polyphen2_HVAR_pred:["D","P","B"],
+
+    # SIFT4G pred order
+    ## D: Damaging
+    ## T: Tolerated
+    SIFT4G_pred: ["D","T"],
+    
+    # SIFT pred order
+    ## D: Damaging
+    ## T: Tolerated
+    SIFT_pred: ["D","T"],
+
+    # Alphamissense plugin order
+    # https://useast.ensembl.org/info/docs/tools/vep/script/vep_plugins.html#alphamissense
+    # likely_benign: am_pathogenicity < 0.34
+    # likely_pathogenic: am_pathogenicity > 0.564
+    # ambiguous: otherwise
+    am_class: ["likely_pathogenic","likely_benign","ambiguous"]
+  }
+
+
+annotation_inputs: &annotation_inputs 
+  # plugins are assumed to be in vep_plugins_dir
+  # plugin arguments are assumed to be in vep_cache_dir
+
+  # use $vep_cache_dir and $vep_plugins_dir in place of absolute path. 
+  # Will be replaced accordingly in script
+  vep_fork: &vep_fork 5
+
+  vep_plugins: &vep_plugins [
+    # Alphamissense
+    "AlphaMissense,\"file=$vep_cache_dir/AlphaMissense_hg38.tsv.gz\",\"cols=all\"",
+    # loftee
+    "LoF,loftee_path:$vep_plugins_dir,human_ancestor_fa:$vep_cache_dir/human_ancestor.fa.gz,conservation_file:$vep_cache_dir/loftee.sql,gerp_bigwig:$vep_cache_dir/gerp_conservation_scores.homo_sapiens.GRCh38.bw",
+    # CADD  
+    "CADD,$vep_cache_dir/whole_genome_SNVs.tsv.gz,$vep_cache_dir/gnomad.genomes.r3.0.indel.tsv.gz",
+    # dbNSFP
+    "dbNSFP,$vep_cache_dir/dbNSFP4.8a_grch38.gz,gnomAD_genomes_AFR_AF,gnomAD_genomes_AMI_AF,gnomAD_genomes_AMR_AF,gnomAD_genomes_ASJ_AF,gnomAD_genomes_EAS_AF,gnomAD_genomes_FIN_AF,gnomAD_genomes_MID_AF,gnomAD_genomes_NFE_AF,gnomAD_genomes_SAS_AF,EVE_Class25_pred,VEP_canonical,LRT_pred,SIFT_pred,SIFT4G_pred,MutationTaster_pred,Polyphen2_HDIV_pred,Polyphen2_HVAR_pred,AlphaMissense_pred",
+    # REVEL
+    "REVEL,$vep_cache_dir/new_tabbed_revel_grch38.tsv.gz"
+  ]
+
+
+
+vcf_alignment: &vcf_alignment
+  reference_fasta: &reference_fasta "./GCA_000001405.15_GRCh38_no_alt_analysis_set.fna"
+
+  # binary 1/0 for whether to set variant ID as
+  # chrom:pos:ref:alt
+  bcftools_param_set_id: &bcftools_param_set_id 0
+
+
+regenie_annotation_mask: &regenie_annotation_mask
+  # Defines masks. This is same as inputs to Regenie mask files
+  # keys = mask names
+  # values = annotation types
+  # # it is a list: [annotation1,annotation2]
+
+  mask_definitions: &mask_definitions {
+    "alphamiss_plof_5in5":{
+      "M1_LoF":["pLoF"],
+      "M2_LoF_or_deleterious":["pLoF","deleterious_5_of_5"],
+      "M3_deleterious_5in5":["deleterious_5_of_5"]
+    }
+  }
+
+  annotation_definitions: &annotation_definitions {
+    "alphamiss_plof_5in5":{
+      "pLoF":{
+        "all":{"IMPACT":["HIGH"]}
+      },
+      "deleterious_5_of_5":{
+        "all":{
+          "LRT_pred":["D"],
+          "MutationTaster_pred":["A","D"],
+          "Polyphen2_HDIV_pred":["D"],
+          "Polyphen2_HVAR_pred":["D"],
+          "SIFT_pred":["D"]
+        },
+        "var_consequence":["missense_variant"]
+      }
+    }
+  }
+
+  # if variants fits 1 or more annotation, the order of assignment
+  annotation_order: &annotation_order {
+    "alphamiss_plof_5in5":["pLoF","deleterious_5_of_5"]
+  }
+
+
+  ## VEP column names expected in files
+  vep_variant_ID: &vep_variant_ID "#Uploaded_variation"
+  vep_variant_location: &vep_variant_location "Location"
+  vep_gene: &vep_gene "Gene"
+  vep_annotations: &vep_annotations "Extra"
+  vep_var_consequence: &vep_var_consequence "Consequence"
+
+regenie_burden_testing: &regenie_burden_testing
+
+  # Parameters for Regenie except for:
+  ## Output parameters for step1 and 2 (determined based on file name)
+  ## Input files for step2 (based on the plink files converted from input vcf)
+  ## do not use absolute paths for lowmem-prefix. Working directory will be added in the script if this tag is specified.
+  
+  # Notes  
+  ## keys will be passed as is to Regenie so must be valid Regenie flags
+  ## flags with no inputs should be left as empty string
+
+  # Covariates are those from Chen et al 2024
+  
+  # Step 1 parameters
+  s1_params: &s1_params {
+    "--bed":"./EUR_autosomes_ld_pruned",
+     "--covarFile":"./UKB_eur_binary_phenotypes.txt",
+    "--phenoFile":"./UKB_eur_binary_phenotypes.txt",
+    "--keep":"./ukb.eurFIDIIDPCA.txt",
+    "--phenoCol":"hypertension,Hypercholesterolemia,Diaphragmatic_hernia,Osteoarthritis_localized,Cataract,T2D,Major_depressive_disorder,Hypothyroidism,Acute_renal_failure,Atrial_fibrillation",
+    "--covarColList":"Age,Age_square,sex_age_interaction,sex_age_sq_interaction,PC{1:10},rarePC{1:20}",
+    "--catCovarList":"biological_sex",
+    "--maxCatLevels":"40",
+    "--bt":"",
+    "--bsize":"1000",
+    "--lowmem":"",
+    "--lowmem-prefix":"tmp_rg_trait",
+    "--threads":"10",
+    "--gz":""
+  }
+
+  # Step 2 (burden testing parameters)
+  s2_params: &s2_params {
+     "--ref-first":"",
+    "--keep":"./ukb.eurFIDIIDPCA.txt",
+    "--phenoFile":"./UKB_eur_binary_phenotypes.txt",
+    "--covarFile":"./UKB_eur_binary_phenotypes.txt",
+    "--bt":"",
+    "--firth":"",
+    "--approx":"",
+    "--phenoCol":"hypertension,Hypercholesterolemia,Diaphragmatic_hernia,Osteoarthritis_localized,Cataract,T2D,Major_depressive_disorder,Hypothyroidism,Acute_renal_failure,Atrial_fibrillation",
+    "--covarColList":"Age,Age_square,sex_age_interaction,sex_age_sq_interaction,PC{1:10},rarePC{1:20}",
+    "--catCovarList":"biological_sex",
+    "--maxCatLevels":"40",
+    "--vc-tests":"skato",
+    "--vc-maxAAF":"0.01",
+    "--build-mask":"max",
+    "--htp":"ukb_test_eur",
+    "--aaf-bins":"0.01,0.001,0.0001,0.00001",
+    "--joint": "acat",
+    "--bsize":"1000",
+    "--gz":"",
+    "--par-region":"hg38",
+    "--threads":"10"
+  }
+
+regenie_result_summaries: &regenie_result_summaries
+  regenie_expected_columns: &regenie_expected_columns ["Name","Chr","Pos","Ref","Alt","Trait","Cohort","Model","Effect","LCI_Effect","UCI_Effect","Pval","AAF"]
+  processing_threads: &processing_threads 5
+
+
+
+proj_config: &proj_config
+  <<: *programs
+  <<: *annotation_inputs
+  <<: *annotation_consequence_orders
+  <<: *vcf_alignment
+  <<: *regenie_annotation_mask
+  <<: *regenie_burden_testing
+  <<: *regenie_result_summaries
+  
+
+  genome_build: &genome_build "GRCh38"
+
